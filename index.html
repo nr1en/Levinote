@@ -577,6 +577,19 @@ async function loadUserDoc(uid){
   const snap=await getDoc(ref);
   if(snap.exists()){UDATA={...UDATA,...snap.data()}}
   else{await setDoc(ref,UDATA)}
+  // ── تحديث تلقائي عند كل دخول ──
+  const user=auth.currentUser;
+  if(user){
+    await setDoc(ref,{
+      email: user.email||'',
+      uid: user.uid,
+      lastLogin: new Date().toISOString().slice(0,16).replace('T',' '),
+      createdAt: UDATA.createdAt||new Date().toISOString().slice(0,10),
+    },{merge:true});
+    UDATA.email=user.email||'';
+    UDATA.uid=user.uid;
+    UDATA.lastLogin=new Date().toISOString().slice(0,16).replace('T',' ');
+  }
   if(unsubSnap) unsubSnap();
   unsubSnap=onSnapshot(ref,s=>{if(s.exists()){UDATA={...UDATA,...s.data()};rh();if($('pS').classList.contains('on'))rst()}});
 }
@@ -994,19 +1007,23 @@ window.loadAdmin=async()=>{
     if(!users.length){$('admList').innerHTML='<div style="color:var(--text3);font-size:.85rem;padding:10px 0">No users yet</div>';return}
     $('admList').innerHTML=users.map(u=>{
       const name=u.displayName||u.email?.split('@')[0]||'Unknown';
-      const handle=u.username?'@'+u.username:u.email||'';
+      const handle=u.username?'@'+u.username:'';
       const joined=u.createdAt||'—';
+      const lastLogin=u.lastLogin||'—';
       const prov=u.provider==='email'?'📧 Email':'🌐 Google';
+      const uid=u.uid||u.id||'—';
       const avt=u.avatarBase64?`<img src="${u.avatarBase64}" alt="">`:name[0].toUpperCase();
       return`<div class="user-row">
         <div class="user-avt">${avt}</div>
         <div class="user-info">
-          <div class="user-name">${name}</div>
-          <div class="user-email">${handle||u.email||''}</div>
+          <div class="user-name">${name} ${handle?`<span style="color:var(--text3);font-size:.75rem">${handle}</span>`:''}</div>
+          <div class="user-email">📧 ${u.email||'—'}</div>
+          <div class="user-email">🆔 ${uid}</div>
+          <div class="user-email">🕐 Last login: ${lastLogin}</div>
         </div>
         <div class="user-meta">
           <div class="user-provider">${prov}</div>
-          <div class="user-date">${joined}</div>
+          <div class="user-date">Joined: ${joined}</div>
         </div>
       </div>`;
     }).join('');
