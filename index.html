@@ -35,9 +35,20 @@
   --glass-hi:rgba(255,255,255,0.72);
   --border:rgba(100,160,210,0.28);
   --border-hi:rgba(100,160,210,0.55);
-  --text:#08101C;--text2:rgba(8,16,28,0.5);--text3:rgba(8,16,28,0.32);
+  --text:#08101C;--text2:rgba(8,16,28,0.6);--text3:rgba(8,16,28,0.45);
+  --accent:#2A7AB5;--accent2:#1A9E7A;
+  --warn:#B8860B;
   --shadow:0 8px 32px rgba(0,0,0,0.12),0 1px 0 rgba(255,255,255,0.8) inset;
 }
+.lm .snum{
+  background:linear-gradient(135deg,#08101C,#2A7AB5);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.lm .pbar{background:rgba(0,0,0,0.12)}
+.lm .prog-bar{background:rgba(0,0,0,0.12)}
+.lm .hstr{color:#B8860B}
+.lm .srp{color:#2A7AB5}
+.lm .strv{color:#B8860B}
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%}
 body{font-family:var(--fn);background:var(--bg);color:var(--text);min-height:100dvh;overflow-x:hidden;transition:background .35s,color .25s;-webkit-font-smoothing:antialiased}
@@ -196,6 +207,40 @@ body.ar,body.ar *{font-family:var(--fn-ar)!important}
 .dtxt{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:var(--rx);padding:12px;color:var(--text);font-family:inherit;font-size:.88rem;resize:vertical;min-height:108px;outline:none;line-height:1.6;transition:border .18s}
 .dtxt:focus{border-color:var(--border-hi)}
 .dtxt::placeholder{color:var(--text3)}
+/* ADMIN PAGE */
+.admin-wrap{flex:1;overflow-y:auto;padding:18px 15px 40px;max-width:700px;margin:0 auto;width:100%}
+.admin-header{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.admin-badge{background:linear-gradient(135deg,#FFD166,#FF6B6B);color:#081018;border-radius:99px;padding:4px 14px;font-size:.75rem;font-weight:700;letter-spacing:.5px}
+.admin-title{font-size:1.2rem;font-weight:700}
+.kpi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+.kpi{background:var(--glass);border:1px solid var(--border);border-radius:var(--rs);padding:18px 16px;backdrop-filter:var(--blur-sm);-webkit-backdrop-filter:var(--blur-sm);text-align:center}
+.kpi-num{font-size:2rem;font-weight:700;background:linear-gradient(135deg,var(--pearl),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.kpi-lbl{font-size:.7rem;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
+.user-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.user-row:last-child{border-bottom:none}
+.user-avt{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:700;color:#081018;flex-shrink:0;overflow:hidden}
+.user-avt img{width:100%;height:100%;object-fit:cover}
+.user-info{flex:1;min-width:0}
+.user-name{font-size:.88rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-email{font-size:.72rem;color:var(--text3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-meta{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0}
+.user-provider{font-size:.68rem;background:var(--glass-md);border:1px solid var(--border);border-radius:99px;padding:2px 8px;color:var(--text2)}
+.user-date{font-size:.68rem;color:var(--text3)}
+.admin-refresh{background:var(--glass-md);border:1px solid var(--border);border-radius:99px;padding:7px 16px;color:var(--text2);font-size:.78rem;font-weight:600;font-family:inherit;cursor:pointer;transition:all .18s}
+.admin-refresh:hover{background:var(--glass-hi);color:var(--text)}
+.setup-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:24px 18px;min-height:100dvh}
+.setup-card{width:100%;max-width:400px;background:var(--glass);border:1px solid var(--border);border-radius:28px;padding:40px 30px;backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);box-shadow:var(--shadow);animation:pop .5s cubic-bezier(.22,1,.36,1)}
+.setup-title{font-size:1.4rem;font-weight:700;margin-bottom:6px;text-align:center}
+.setup-sub{color:var(--text2);font-size:.86rem;text-align:center;margin-bottom:28px;line-height:1.5}
+.ucheck{display:flex;align-items:center;gap:7px;font-size:.78rem;margin-top:7px;min-height:18px}
+.ucheck.ok{color:var(--success)}
+.ucheck.err{color:var(--danger)}
+.ucheck.loading{color:var(--text3)}
+/* EDIT PROFILE MODAL */
+.edit-avt{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;color:#081018;margin:0 auto 16px;cursor:pointer;position:relative;overflow:hidden;box-shadow:0 0 0 3px rgba(126,188,230,.2)}
+.edit-avt img{width:100%;height:100%;object-fit:cover}
+.edit-avt-overlay{position:absolute;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-size:1.2rem;opacity:0;transition:opacity .2s}
+.edit-avt:hover .edit-avt-overlay{opacity:1}
 body.ar{direction:rtl}
 .hlist .hcard:nth-child(1){animation-delay:.04s}
 .hlist .hcard:nth-child(2){animation-delay:.08s}
@@ -311,6 +356,7 @@ body.ar{direction:rtl}
         <div class="pname" id="pnm"></div>
         <div class="phandle" id="phnd"></div>
         <div class="pbadge" id="pbadge">✓ Verified</div>
+        <button class="btnadd" style="margin-top:14px" onclick="openEditProfile()" id="btnEditProf">✏️ Edit Profile</button>
       </div>
       <div class="prefr">
         <div class="plft"><span class="pico">🔔</span>
@@ -323,12 +369,91 @@ body.ar{direction:rtl}
         <input class="tinp" type="time" id="rtime" value="21:00" onchange="svrt()">
       </div>
       <button class="btnout" onclick="doLogout()" id="blo">Logout</button>
+      <div id="adminBtnWrap" style="display:none;margin-top:10px">
+        <button class="btn-main" onclick="openAdmin()" style="background:linear-gradient(135deg,#FFD166,#FF6B6B);color:#081018">👑 Admin Dashboard</button>
+      </div>
     </div>
   </div>
   <div class="bnav">
     <button class="nb on" id="nH" onclick="gop('H')"><span class="ni">⊙</span><span id="nlh">Home</span></button>
     <button class="nb"    id="nS" onclick="gop('S')"><span class="ni">◎</span><span id="nls">Stats</span></button>
     <button class="nb"    id="nP" onclick="gop('P')"><span class="ni">◉</span><span id="nlp">Profile</span></button>
+  </div>
+</div>
+
+<!-- ADMIN SCREEN -->
+<div id="ADM" class="scr">
+  <div class="topbar">
+    <div class="tlogo">Levi Note</div>
+    <div class="tright">
+      <div class="admin-badge">ADMIN</div>
+      <button class="pill" onclick="exitAdmin()">← Exit</button>
+    </div>
+  </div>
+  <div class="admin-wrap">
+    <div class="admin-header">
+      <div class="admin-title">Dashboard</div>
+      <button class="admin-refresh" onclick="loadAdmin()">⟳ Refresh</button>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-num" id="admTotal">—</div><div class="kpi-lbl">Total Users</div></div>
+      <div class="kpi"><div class="kpi-num" id="admToday">—</div><div class="kpi-lbl">Joined Today</div></div>
+      <div class="kpi"><div class="kpi-num" id="admGoogle">—</div><div class="kpi-lbl">Google Users</div></div>
+      <div class="kpi"><div class="kpi-num" id="admEmail">—</div><div class="kpi-lbl">Email Users</div></div>
+    </div>
+    <div class="gcard">
+      <div class="ctit">All Users</div>
+      <div id="admList"><div class="loading"><div class="spin"></div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- USERNAME SETUP -->
+<div id="US" class="scr">
+  <div class="setup-wrap">
+    <div class="setup-card">
+      <div class="brand" style="margin-bottom:20px">
+        <div class="brand-name">Levi Note</div>
+      </div>
+      <div class="setup-title" id="stit">Set up your profile</div>
+      <div class="setup-sub" id="ssub">Choose a username and display name to get started</div>
+      <div class="errbx" id="serr"></div>
+      <div class="fld">
+        <label class="flbl" id="slbu">Username</label>
+        <input class="finp" id="su" type="text" placeholder="@username" autocomplete="off" oninput="liveCheckUser(this)">
+        <div class="ucheck" id="uchk"></div>
+        <div class="fhint" id="shint">2–33 chars · a-z, 0-9, _ and . only · no consecutive dots</div>
+      </div>
+      <div class="fld">
+        <label class="flbl" id="slbn">Display Name</label>
+        <input class="finp" id="sn" type="text" placeholder="Your name" maxlength="40">
+      </div>
+      <button class="btn-main" onclick="saveSetup()" id="btnSetup">Continue</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT PROFILE MODAL -->
+<div class="ovl" id="EPM">
+  <div class="modal">
+    <div class="mtit" id="epTitle">Edit Profile</div>
+    <div class="edit-avt" id="editAvt" onclick="$('avatFile').click()">
+      <div class="edit-avt-overlay">📷</div>
+    </div>
+    <input type="file" id="avatFile" accept="image/*" style="display:none" onchange="handleAvatChange(this)">
+    <div class="fld">
+      <label class="flbl" id="epLbU">Username</label>
+      <input class="finp" id="epU" type="text" autocomplete="off" oninput="liveCheckUserEdit(this)">
+      <div class="ucheck" id="epUchk"></div>
+    </div>
+    <div class="fld">
+      <label class="flbl" id="epLbN">Display Name</label>
+      <input class="finp" id="epN" type="text" maxlength="40">
+    </div>
+    <div class="macts">
+      <button class="bcnc" onclick="cm('EPM')" id="epCancel">Cancel</button>
+      <button class="bok" onclick="saveEditProfile()" id="epSave">Save</button>
+    </div>
   </div>
 </div>
 
@@ -467,6 +592,8 @@ window.loginGoogle=async()=>{
     const prov=new GoogleAuthProvider();
     const res=await signInWithPopup(auth,prov);
     await loadUserDoc(res.user.uid);
+    // save provider if first time
+    if(!UDATA.provider){UDATA.provider='google';UDATA.createdAt=UDATA.createdAt||new Date().toISOString().slice(0,10);await saveUD()}
     enterApp(res.user);
   }catch(e){serr(e.message)}
 };
@@ -496,7 +623,7 @@ window.doreg=async()=>{
     $('btnr').disabled=true;
     const res=await createUserWithEmailAndPassword(auth,e,p);
     await sendEmailVerification(res.user);
-    await setDoc(doc(db,'users',res.user.uid),UDATA);
+    await setDoc(doc(db,'users',res.user.uid),{...UDATA,provider:'email',createdAt:new Date().toISOString().slice(0,10)});
     $('vemail').textContent=e;
     $('vtit').textContent=t('vtit');
     $('vsub').innerHTML=t('vsub')+' <span class="verify-email">'+e+'</span>';
@@ -527,6 +654,12 @@ window.doLogout=async()=>{
 
 /* ── ENTER APP ── */
 function enterApp(user){
+  // if no username yet → go to setup
+  if(!UDATA.username){
+    ['AS','VS','APP'].forEach(s=>$(s).classList.remove('on'));
+    $('US').classList.add('on');
+    return;
+  }
   show('APP');
   gop('H');
   apl();
@@ -534,7 +667,118 @@ function enterApp(user){
   rp(user);
 }
 
-/* ── AUTH STATE ── */
+/* ── USERNAME VALIDATION ── */
+function validUN(u){
+  if(u.length<2||u.length>33)return false;
+  if(!/^[a-zA-Z0-9_.]+$/.test(u))return false;
+  if(u.startsWith('.')||u.endsWith('.'))return false;
+  if(u.includes('..'))return false;
+  return true;
+}
+
+let checkTimer=null;
+async function liveCheckUser(inp){
+  const u=inp.value.trim().replace(/^@/,'');
+  const el=$('uchk');
+  if(!u){el.textContent='';el.className='ucheck';return}
+  if(!validUN(u)){el.textContent='❌ Invalid username format';el.className='ucheck err';return}
+  el.textContent='⏳ Checking...';el.className='ucheck loading';
+  clearTimeout(checkTimer);
+  checkTimer=setTimeout(async()=>{
+    const taken=await isUsernameTaken(u);
+    if(taken){el.textContent='❌ Username already taken';el.className='ucheck err'}
+    else{el.textContent='✓ Available';el.className='ucheck ok'}
+  },600);
+}
+
+let checkTimerEdit=null;
+async function liveCheckUserEdit(inp){
+  const u=inp.value.trim().replace(/^@/,'');
+  const el=$('epUchk');
+  if(!u){el.textContent='';el.className='ucheck';return}
+  if(!validUN(u)){el.textContent='❌ Invalid format';el.className='ucheck err';return}
+  if(u.toLowerCase()===UDATA.username?.toLowerCase()){el.textContent='✓ Your current username';el.className='ucheck ok';return}
+  el.textContent='⏳ Checking...';el.className='ucheck loading';
+  clearTimeout(checkTimerEdit);
+  checkTimerEdit=setTimeout(async()=>{
+    const taken=await isUsernameTaken(u);
+    if(taken){el.textContent='❌ Already taken';el.className='ucheck err'}
+    else{el.textContent='✓ Available';el.className='ucheck ok'}
+  },600);
+}
+
+async function isUsernameTaken(username){
+  try{
+    const {getDocs,collection,query,where}=await import("https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js");
+    const q=query(collection(db,'users'),where('username','==',username.toLowerCase()));
+    const snap=await getDocs(q);
+    return!snap.empty;
+  }catch{return false}
+}
+
+/* ── SETUP ── */
+window.saveSetup=async()=>{
+  const u=$('su').value.trim().replace(/^@/,'');
+  const n=$('sn').value.trim();
+  const serr=$('serr');
+  if(!validUN(u)){serr.textContent='Invalid username format';serr.classList.add('on');return}
+  if(!n){serr.textContent='Please enter a display name';serr.classList.add('on');return}
+  const taken=await isUsernameTaken(u);
+  if(taken){serr.textContent='Username already taken';serr.classList.add('on');return}
+  serr.classList.remove('on');
+  $('btnSetup').disabled=true;
+  UDATA.username=u.toLowerCase();
+  UDATA.displayName=n;
+  await saveUD();
+  enterApp(auth.currentUser);
+  $('btnSetup').disabled=false;
+};
+
+/* ── EDIT PROFILE ── */
+let newAvatBase64=null;
+window.openEditProfile=()=>{
+  $('epU').value=UDATA.username||'';
+  $('epN').value=UDATA.displayName||'';
+  $('epUchk').textContent='';$('epUchk').className='ucheck';
+  newAvatBase64=null;
+  // show current avatar
+  const ea=$('editAvt');
+  if(UDATA.avatarBase64){ea.innerHTML=`<img src="${UDATA.avatarBase64}" alt=""><div class="edit-avt-overlay">📷</div>`}
+  else if(auth.currentUser?.photoURL){ea.innerHTML=`<img src="${auth.currentUser.photoURL}" alt=""><div class="edit-avt-overlay">📷</div>`}
+  else{const u=UDATA.displayName||auth.currentUser?.email||'?';ea.innerHTML=`${u[0].toUpperCase()}<div class="edit-avt-overlay">📷</div>`}
+  om('EPM');
+};
+
+window.handleAvatChange=inp=>{
+  const file=inp.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    newAvatBase64=e.target.result;
+    const ea=$('editAvt');
+    ea.innerHTML=`<img src="${newAvatBase64}" alt=""><div class="edit-avt-overlay">📷</div>`;
+  };
+  reader.readAsDataURL(file);
+};
+
+window.saveEditProfile=async()=>{
+  const u=$('epU').value.trim().replace(/^@/,'');
+  const n=$('epN').value.trim();
+  if(!validUN(u)){alert('Invalid username');return}
+  if(!n){alert('Please enter a display name');return}
+  // check username only if changed
+  if(u.toLowerCase()!==UDATA.username?.toLowerCase()){
+    const taken=await isUsernameTaken(u);
+    if(taken){alert('Username already taken');return}
+  }
+  $('epSave').disabled=true;
+  UDATA.username=u.toLowerCase();
+  UDATA.displayName=n;
+  if(newAvatBase64)UDATA.avatarBase64=newAvatBase64;
+  await saveUD();
+  cm('EPM');
+  rp(auth.currentUser);
+  $('epSave').disabled=false;
+};
 onAuthStateChanged(auth,async user=>{
   if(user&&user.emailVerified){
     await loadUserDoc(user.uid);
@@ -704,16 +948,72 @@ function rst(){
 function rp(user){
   if(!user)return;
   const pavt=$('pavt');
-  if(user.photoURL){pavt.innerHTML=`<img src="${user.photoURL}" alt="">`}
-  else{pavt.textContent=(user.displayName||user.email||'?')[0].toUpperCase()}
-  $('pnm').textContent=user.displayName||user.email?.split('@')[0]||'User';
-  $('phnd').textContent=user.email||'';
+  if(UDATA.avatarBase64){pavt.innerHTML=`<img src="${UDATA.avatarBase64}" alt="">`}
+  else if(user.photoURL){pavt.innerHTML=`<img src="${user.photoURL}" alt="">`}
+  else{pavt.textContent=(UDATA.displayName||user.displayName||user.email||'?')[0].toUpperCase()}
+  $('pnm').textContent=UDATA.displayName||user.displayName||user.email?.split('@')[0]||'User';
+  $('phnd').textContent=UDATA.username?'@'+UDATA.username:user.email||'';
   $('rtog').className='tog'+(UDATA.reminder?' on':'');
   $('rtrow').style.display=UDATA.reminder?'flex':'none';
   $('rtime').value=UDATA.remTime||'21:00';
+  // show admin button if admin
+  $('adminBtnWrap').style.display=isAdmin(user)?'block':'none';
 }
 window.trem=async()=>{UDATA.reminder=!UDATA.reminder;await saveUD();rp(auth.currentUser)};
 window.svrt=async()=>{UDATA.remTime=$('rtime').value;await saveUD()};
+
+/* ── ADMIN ── */
+const ADMIN_EMAILS=['sas235sa@gmail.com','sas237sa@gmail.com'];
+function isAdmin(user){return user&&ADMIN_EMAILS.includes(user.email?.toLowerCase())}
+
+window.openAdmin=async()=>{
+  ['AS','VS','APP','US'].forEach(s=>$(s).classList.remove('on'));
+  $('ADM').classList.add('on');
+  await loadAdmin();
+};
+window.exitAdmin=()=>{
+  $('ADM').classList.remove('on');
+  $('APP').classList.add('on');
+  gop('P');
+};
+window.loadAdmin=async()=>{
+  $('admList').innerHTML='<div class="loading"><div class="spin"></div></div>';
+  try{
+    const {getDocs,collection,orderBy,query}=await import("https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js");
+    const snap=await getDocs(query(collection(db,'users'),orderBy('createdAt','desc').catch?orderBy('createdAt','desc'):undefined)||collection(db,'users'));
+    const users=[];
+    snap.forEach(d=>users.push({id:d.id,...d.data()}));
+    const todayStr=new Date().toISOString().slice(0,10);
+    const googleCount=users.filter(u=>u.provider==='google'||!u.provider).length;
+    const emailCount=users.filter(u=>u.provider==='email').length;
+    const todayCount=users.filter(u=>(u.createdAt||'').startsWith(todayStr)).length;
+    $('admTotal').textContent=users.length;
+    $('admToday').textContent=todayCount;
+    $('admGoogle').textContent=googleCount;
+    $('admEmail').textContent=emailCount;
+    if(!users.length){$('admList').innerHTML='<div style="color:var(--text3);font-size:.85rem;padding:10px 0">No users yet</div>';return}
+    $('admList').innerHTML=users.map(u=>{
+      const name=u.displayName||u.email?.split('@')[0]||'Unknown';
+      const handle=u.username?'@'+u.username:u.email||'';
+      const joined=u.createdAt||'—';
+      const prov=u.provider==='email'?'📧 Email':'🌐 Google';
+      const avt=u.avatarBase64?`<img src="${u.avatarBase64}" alt="">`:name[0].toUpperCase();
+      return`<div class="user-row">
+        <div class="user-avt">${avt}</div>
+        <div class="user-info">
+          <div class="user-name">${name}</div>
+          <div class="user-email">${handle||u.email||''}</div>
+        </div>
+        <div class="user-meta">
+          <div class="user-provider">${prov}</div>
+          <div class="user-date">${joined}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    $('admList').innerHTML=`<div style="color:var(--danger);font-size:.83rem">${e.message}</div>`;
+  }
+};
 
 /* ── MODAL ── */
 window.om=id=>$(id).classList.add('on');
