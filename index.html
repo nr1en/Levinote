@@ -652,9 +652,24 @@
           👑 Admin Dashboard
         </button>
       </div>
-    </div>
 
-  </div><!-- /apc -->
+      <!-- Following Section -->
+      <div class="gcard" style="margin-top:12px;padding:18px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="ctit" style="margin-bottom:0" id="lFollowing">Following</div>
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:99px;
+                        padding:2px 10px;font-size:.72rem;font-weight:700;color:var(--accent)"
+                 id="followingCount">0</div>
+          </div>
+          <button class="btnadd" onclick="openNewChat()" style="font-size:.75rem;padding:6px 12px">
+            ✏️ <span id="lNewMsg">New Message</span>
+          </button>
+        </div>
+        <div id="followingList"></div>
+      </div>
+
+    </div><!-- /pP -->
 
   <!-- Bottom Navigation -->
   <nav class="bnav" aria-label="Main navigation">
@@ -1236,6 +1251,9 @@ function applyTranslations() {
   set('lrem',  t('rem'));  set('lrsub', t('rs')); set('lrt', t('rt'));
   set('blo',   t('lo'));   set('pbadge',t('verified'));
 
+  set('lFollowing', LANG === 'ar' ? 'المتابَعون' : 'Following');
+  set('lNewMsg',    LANG === 'ar' ? 'رسالة جديدة' : 'New Message');
+
   /* Nav */
   set('nlh', t('nlh')); set('nls', t('nls')); set('nlp', t('nlp'));
 }
@@ -1251,7 +1269,7 @@ window.navTo = n => {
   });
   if (n === 'S') renderStats();
   if (n === 'M') loadChats();
-  if (n === 'P') renderProfile(auth.currentUser);
+  if (n === 'P') { renderProfile(auth.currentUser); }
 };
 
 /* ═══════════════════════════════════════════════════
@@ -1593,6 +1611,8 @@ function renderProfile(user) {
   $('rtrow').style.display = UDATA.reminder ? 'flex' : 'none';
   $('rtime').value       = UDATA.remTime ?? '21:00';
   $('adminBtnWrap').style.display = isAdmin(user) ? 'block' : 'none';
+  /* Render following list */
+  renderFollowing();
 }
 
 window.toggleReminder = async () => {
@@ -1672,6 +1692,84 @@ window.loadAdmin = async () => {
 /* ═══════════════════════════════════════════════════
    MESSAGES / CHAT
 ═══════════════════════════════════════════════════ */
+
+/** Toggle follow/unfollow a user */
+window.toggleFollow = async (targetUid, targetName) => {
+  UDATA.following = UDATA.following ?? [];
+  const idx = UDATA.following.indexOf(targetUid);
+  if (idx === -1) {
+    UDATA.following.push(targetUid);
+  } else {
+    UDATA.following.splice(idx, 1);
+  }
+  await saveUserData();
+  /* Update button instantly */
+  const btn      = $(`fBtn_${targetUid}`);
+  const isFollow = UDATA.following.includes(targetUid);
+  if (btn) {
+    btn.textContent = isFollow ? '✓ Following' : '+ Follow';
+    btn.style.background   = isFollow ? 'var(--surface2)' : 'linear-gradient(135deg,#6E8B5E,#2D5A27)';
+    btn.style.color        = isFollow ? 'var(--text2)'    : '#E8D9C5';
+    btn.style.borderColor  = isFollow ? 'var(--border)'   : 'transparent';
+  }
+  /* Refresh following list in profile if open */
+  if ($('pP').classList.contains('on')) renderFollowing();
+};
+
+/** Render following list in profile */
+async function renderFollowing() {
+  const container = $('followingList');
+  if (!container) return;
+  const following = UDATA.following ?? [];
+  $('followingCount').textContent = following.length;
+  if (!following.length) {
+    container.innerHTML = `<p style="color:var(--text3);font-size:.84rem;padding:10px 0">
+      ${LANG === 'ar' ? 'لا تتابع أحداً بعد' : 'Not following anyone yet'}
+    </p>`;
+    return;
+  }
+  container.innerHTML = '<div class="loading"><div class="spin"></div></div>';
+  try {
+    const users = await Promise.all(
+      following.map(uid => getDoc(doc(db, 'users', uid)).then(s => s.exists() ? { id: s.id, ...s.data() } : null))
+    );
+    container.innerHTML = users.filter(Boolean).map(u => {
+      const name   = u.displayName ?? u.username ?? 'User';
+      const avatEl = u.avatarBase64
+        ? `<img src="${u.avatarBase64}" alt="Avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`
+        : esc(name[0]).toUpperCase();
+      return `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer"
+               onclick="closeModal('EPM');navTo('M');startChat('${esc(u.id)}','${esc(u.username??'')}','${esc(name)}')">
+            <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#6E8B5E,#4A7A3A);
+                        display:flex;align-items:center;justify-content:center;font-weight:700;
+                        color:#E8D9C5;flex-shrink:0;overflow:hidden;font-size:.9rem">${avatEl}</div>
+            <div style="min-width:0">
+              <div style="font-size:.88rem;font-weight:600">${esc(name)}</div>
+              <div style="font-size:.75rem;color:var(--text3)">@${esc(u.username ?? '')}</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0">
+            <button onclick="startChat('${esc(u.id)}','${esc(u.username??'')}','${esc(name)}')"
+                    style="background:linear-gradient(135deg,#6E8B5E,#2D5A27);border:none;
+                           border-radius:99px;padding:5px 12px;color:#E8D9C5;
+                           font-size:.75rem;font-weight:600;cursor:pointer;font-family:inherit">
+              💬 ${LANG === 'ar' ? 'رسالة' : 'Message'}
+            </button>
+            <button onclick="toggleFollow('${esc(u.id)}','${esc(name)}')"
+                    style="background:var(--surface2);border:1px solid var(--border);
+                           border-radius:99px;padding:5px 10px;color:var(--text2);
+                           font-size:.75rem;cursor:pointer;font-family:inherit">
+              ✕
+            </button>
+          </div>
+        </div>`;
+    }).join('');
+  } catch (e) {
+    container.innerHTML = `<p style="color:var(--danger);font-size:.83rem">${esc(e.message)}</p>`;
+  }
+}
 
 /** Deterministic chat ID from two user IDs */
 const getChatId = (uid1, uid2) => [uid1, uid2].sort().join('_');
@@ -1758,21 +1856,46 @@ window.searchUsers = async q => {
       where('username', '<=', uq + '\uf8ff'),
       limit(10)
     ));
-    const uid = auth.currentUser.uid;
-    const users = [];
+    const uid      = auth.currentUser.uid;
+    const following = UDATA.following ?? [];
+    const users    = [];
     snap.forEach(d => { if (d.id !== uid) users.push({ id: d.id, ...d.data() }); });
-    if (!users.length) { res.innerHTML = '<p style="color:var(--text3);font-size:.84rem;padding:10px">No users found.</p>'; return; }
+    if (!users.length) {
+      res.innerHTML = '<p style="color:var(--text3);font-size:.84rem;padding:10px">No users found.</p>';
+      return;
+    }
     res.innerHTML = users.map(u => {
-      const name   = u.displayName ?? u.username ?? 'User';
-      const avatEl = u.avatarBase64
+      const name      = u.displayName ?? u.username ?? 'User';
+      const isFollow  = following.includes(u.id);
+      const avatEl    = u.avatarBase64
         ? `<img src="${u.avatarBase64}" alt="Avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`
         : esc(name[0]).toUpperCase();
       return `
-        <div class="user-result" onclick="startChat('${esc(u.id)}','${esc(u.username??'')}','${esc(name)}')">
-          <div class="user-avt-sm">${avatEl}</div>
-          <div>
-            <div class="user-rname">${esc(name)}</div>
-            <div class="user-rhandle">@${esc(u.username ?? '')}</div>
+        <div class="user-result" style="justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer"
+               onclick="startChat('${esc(u.id)}','${esc(u.username??'')}','${esc(name)}')">
+            <div class="user-avt-sm">${avatEl}</div>
+            <div style="min-width:0">
+              <div class="user-rname">${esc(name)}</div>
+              <div class="user-rhandle">@${esc(u.username ?? '')}</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0;margin-left:8px">
+            <button onclick="toggleFollow('${esc(u.id)}','${esc(name)}')"
+                    style="background:${isFollow ? 'var(--surface2)' : 'linear-gradient(135deg,#6E8B5E,#2D5A27)'};
+                           border:1px solid ${isFollow ? 'var(--border)' : 'transparent'};
+                           color:${isFollow ? 'var(--text2)' : '#E8D9C5'};
+                           border-radius:99px;padding:5px 12px;font-size:.75rem;
+                           font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap"
+                    id="fBtn_${esc(u.id)}">
+              ${isFollow ? '✓ Following' : '+ Follow'}
+            </button>
+            <button onclick="startChat('${esc(u.id)}','${esc(u.username??'')}','${esc(name)}')"
+                    style="background:var(--surface2);border:1px solid var(--border);
+                           color:var(--text2);border-radius:99px;padding:5px 10px;
+                           font-size:.75rem;cursor:pointer;font-family:inherit">
+              💬
+            </button>
           </div>
         </div>`;
     }).join('');
@@ -1784,15 +1907,16 @@ window.searchUsers = async q => {
 /** Create chat doc if needed, then open chat */
 window.startChat = async (uid, username, name) => {
   closeModal('NCM');
-  const cid = getChatId(auth.currentUser.uid, uid);
-  const ref = doc(db, 'chats', cid);
+  if (!auth.currentUser) return;
+  const cid  = getChatId(auth.currentUser.uid, uid);
+  const ref  = doc(db, 'chats', cid);
   const snap = await getDoc(ref);
   if (!snap.exists()) {
     await setDoc(ref, {
       members  : [auth.currentUser.uid, uid],
       createdAt: new Date().toISOString(),
       lastMsg  : '',
-      lastTime : null,
+      lastTime : new Date().toISOString(),
     });
   }
   openChat(cid, name, username);
