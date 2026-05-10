@@ -383,6 +383,21 @@
     .dtxt   { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:var(--rx); padding:12px; color:var(--text); font-family:inherit; font-size:.88rem; resize:vertical; min-height:108px; outline:none; line-height:1.6; transition:border-color .18s; }
     .dtxt:focus { border-color:var(--accent); }
     .dtxt::placeholder { color:var(--text3); }
+
+    /* ── Follow rows ── */
+    .follow-row         { display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border); }
+    .follow-row:last-child { border-bottom:none; }
+    .follow-user        { display:flex; align-items:center; gap:10px; flex:1; min-width:0; cursor:pointer; }
+    .follow-avt         { width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,#6E8B5E,#4A7A3A); display:flex; align-items:center; justify-content:center; font-size:.95rem; font-weight:700; color:#E8D9C5; flex-shrink:0; overflow:hidden; }
+    .follow-avt img     { width:100%; height:100%; object-fit:cover; }
+    .follow-info        { min-width:0; }
+    .follow-name        { font-size:.88rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .follow-handle      { font-size:.75rem; color:var(--text3); }
+    .follow-actions     { display:flex; gap:6px; flex-shrink:0; margin-left:8px; }
+    .follow-msg-btn     { background:linear-gradient(135deg,#6E8B5E,#2D5A27); border:none; border-radius:99px; padding:6px 12px; color:#E8D9C5; font-size:.75rem; font-weight:600; cursor:pointer; font-family:inherit; white-space:nowrap; }
+    .follow-unf-btn     { background:var(--surface2); border:1px solid var(--border); border-radius:99px; padding:6px 10px; color:var(--text2); font-size:.75rem; cursor:pointer; font-family:inherit; white-space:nowrap; transition:color .18s, border-color .18s; }
+    .follow-unf-btn:hover { color:var(--danger); border-color:rgba(192,97,74,.35); }
+    .follow-tab-btn     { flex:1; padding:14px; border:none; background:transparent; font-family:inherit; cursor:pointer; border-bottom:2px solid transparent; transition:color .18s, border-color .18s; }
   </style>
 </head>
 <body>
@@ -627,6 +642,20 @@
         <div class="pname"   id="pnm"></div>
         <div class="phandle" id="phnd"></div>
         <div class="pbadge"  id="pbadge">✓ Verified</div>
+
+        <!-- Followers / Following stats -->
+        <div style="display:flex;gap:32px;margin-top:16px;margin-bottom:4px">
+          <div style="text-align:center;cursor:pointer" onclick="scrollToFollowing()">
+            <div style="font-size:1.3rem;font-weight:700;color:var(--text)" id="followingCount">0</div>
+            <div style="font-size:.72rem;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px" id="lFollowingLbl">Following</div>
+          </div>
+          <div style="width:1px;background:var(--border)"></div>
+          <div style="text-align:center">
+            <div style="font-size:1.3rem;font-weight:700;color:var(--text)" id="followersCount">0</div>
+            <div style="font-size:.72rem;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px" id="lFollowersLbl">Followers</div>
+          </div>
+        </div>
+
         <button class="btnadd" style="margin-top:14px" onclick="openEditProfile()" id="btnEditProf">✏️ Edit Profile</button>
       </div>
       <div class="prefr">
@@ -653,20 +682,29 @@
         </button>
       </div>
 
-      <!-- Following Section -->
-      <div class="gcard" style="margin-top:12px;padding:18px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-          <div style="display:flex;align-items:center;gap:8px">
-            <div class="ctit" style="margin-bottom:0" id="lFollowing">Following</div>
-            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:99px;
-                        padding:2px 10px;font-size:.72rem;font-weight:700;color:var(--accent)"
-                 id="followingCount">0</div>
-          </div>
-          <button class="btnadd" onclick="openNewChat()" style="font-size:.75rem;padding:6px 12px">
-            ✏️ <span id="lNewMsg">New Message</span>
+      <!-- Following / Followers Section -->
+      <div class="gcard" id="followingSection" style="margin-top:12px;padding:0;overflow:hidden">
+        <!-- Tabs -->
+        <div style="display:flex;border-bottom:1px solid var(--border)">
+          <button id="tabFollowing" onclick="switchFollowTab('following')"
+                  style="flex:1;padding:14px;border:none;background:transparent;
+                         color:var(--accent);font-weight:700;font-size:.88rem;
+                         font-family:inherit;cursor:pointer;border-bottom:2px solid var(--accent)">
+            <span id="lFollowing">Following</span>
+            <span style="background:var(--surface2);border-radius:99px;padding:2px 8px;
+                         font-size:.72rem;margin-left:6px" id="followingCount">0</span>
+          </button>
+          <button id="tabFollowers" onclick="switchFollowTab('followers')"
+                  style="flex:1;padding:14px;border:none;background:transparent;
+                         color:var(--text2);font-weight:600;font-size:.88rem;
+                         font-family:inherit;cursor:pointer;border-bottom:2px solid transparent">
+            <span id="lFollowers">Followers</span>
+            <span style="background:var(--surface2);border-radius:99px;padding:2px 8px;
+                         font-size:.72rem;margin-left:6px" id="followersCount">0</span>
           </button>
         </div>
-        <div id="followingList"></div>
+        <!-- List -->
+        <div style="padding:4px 16px 8px" id="followingList"></div>
       </div>
 
     </div><!-- /pP -->
@@ -1251,8 +1289,10 @@ function applyTranslations() {
   set('lrem',  t('rem'));  set('lrsub', t('rs')); set('lrt', t('rt'));
   set('blo',   t('lo'));   set('pbadge',t('verified'));
 
-  set('lFollowing', LANG === 'ar' ? 'المتابَعون' : 'Following');
-  set('lNewMsg',    LANG === 'ar' ? 'رسالة جديدة' : 'New Message');
+  set('lFollowing',    LANG === 'ar' ? 'المتابَعون' : 'Following');
+  set('lFollowers',    LANG === 'ar' ? 'المتابِعون' : 'Followers');
+  set('lFollowingLbl', LANG === 'ar' ? 'المتابَعون' : 'Following');
+  set('lFollowersLbl', LANG === 'ar' ? 'المتابِعون' : 'Followers');
 
   /* Nav */
   set('nlh', t('nlh')); set('nls', t('nls')); set('nlp', t('nlp'));
@@ -1695,73 +1735,95 @@ window.loadAdmin = async () => {
 
 /** Toggle follow/unfollow a user */
 window.toggleFollow = async (targetUid, targetName) => {
-  UDATA.following = UDATA.following ?? [];
-  const idx = UDATA.following.indexOf(targetUid);
-  if (idx === -1) {
+  UDATA.following   = UDATA.following ?? [];
+  const idx         = UDATA.following.indexOf(targetUid);
+  const isFollowing = idx === -1;
+
+  if (isFollowing) {
     UDATA.following.push(targetUid);
   } else {
     UDATA.following.splice(idx, 1);
+    /* Remove row from following list immediately */
+    const row = $(`frow_${targetUid}`);
+    if (row) row.remove();
   }
+
   await saveUserData();
-  /* Update button instantly */
-  const btn      = $(`fBtn_${targetUid}`);
-  const isFollow = UDATA.following.includes(targetUid);
+
+  /* Update follow button in search results if visible */
+  const btn = $(`fBtn_${targetUid}`);
   if (btn) {
-    btn.textContent = isFollow ? '✓ Following' : '+ Follow';
-    btn.style.background   = isFollow ? 'var(--surface2)' : 'linear-gradient(135deg,#6E8B5E,#2D5A27)';
-    btn.style.color        = isFollow ? 'var(--text2)'    : '#E8D9C5';
-    btn.style.borderColor  = isFollow ? 'var(--border)'   : 'transparent';
+    btn.textContent        = isFollowing ? '✓ Following' : '+ Follow';
+    btn.style.background   = isFollowing ? 'var(--surface2)' : 'linear-gradient(135deg,#6E8B5E,#2D5A27)';
+    btn.style.color        = isFollowing ? 'var(--text2)'    : '#E8D9C5';
+    btn.style.borderColor  = isFollowing ? 'var(--border)'   : 'transparent';
   }
-  /* Refresh following list in profile if open */
+
+  /* Refresh counters and list */
   if ($('pP').classList.contains('on')) renderFollowing();
 };
 
-/** Render following list in profile */
+/** Render following + followers lists in profile */
 async function renderFollowing() {
   const container = $('followingList');
   if (!container) return;
-  const following = UDATA.following ?? [];
-  $('followingCount').textContent = following.length;
+
+  const following  = UDATA.following ?? [];
+  const followersC = $('followersCount');
+  const followingC = $('followingCount');
+  if (followingC) followingC.textContent = following.length;
+
+  /* Count followers: users who have current uid in their following array */
+  try {
+    const fSnap = await getDocs(query(
+      collection(db, 'users'),
+      where('following', 'array-contains', auth.currentUser.uid)
+    ));
+    if (followersC) followersC.textContent = fSnap.size;
+  } catch { if (followersC) followersC.textContent = '0'; }
+
   if (!following.length) {
-    container.innerHTML = `<p style="color:var(--text3);font-size:.84rem;padding:10px 0">
-      ${LANG === 'ar' ? 'لا تتابع أحداً بعد' : 'Not following anyone yet'}
-    </p>`;
+    container.innerHTML = `
+      <p style="color:var(--text3);font-size:.84rem;padding:10px 0;text-align:center">
+        ${LANG === 'ar' ? 'لا تتابع أحداً بعد' : 'Not following anyone yet'}
+      </p>`;
     return;
   }
+
   container.innerHTML = '<div class="loading"><div class="spin"></div></div>';
   try {
-    const users = await Promise.all(
-      following.map(uid => getDoc(doc(db, 'users', uid)).then(s => s.exists() ? { id: s.id, ...s.data() } : null))
+    const docs  = await Promise.all(
+      following.map(uid =>
+        getDoc(doc(db, 'users', uid)).then(s => s.exists() ? { id: s.id, ...s.data() } : null)
+      )
     );
-    container.innerHTML = users.filter(Boolean).map(u => {
-      const name   = u.displayName ?? u.username ?? 'User';
-      const avatEl = u.avatarBase64
-        ? `<img src="${u.avatarBase64}" alt="Avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`
+    const users = docs.filter(Boolean);
+    if (!users.length) { container.innerHTML = ''; return; }
+
+    container.innerHTML = users.map(u => {
+      const name    = u.displayName ?? u.username ?? 'User';
+      const handle  = u.username ? `@${esc(u.username)}` : '';
+      const avatEl  = u.avatarBase64
+        ? `<img src="${u.avatarBase64}" alt="${esc(name)}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`
         : esc(name[0]).toUpperCase();
+      const uid_safe = esc(u.id);
+      const un_safe  = esc(u.username ?? '');
+      const nm_safe  = esc(name);
       return `
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
-          <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer"
-               onclick="closeModal('EPM');navTo('M');startChat('${esc(u.id)}','${esc(u.username??'')}','${esc(name)}')">
-            <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#6E8B5E,#4A7A3A);
-                        display:flex;align-items:center;justify-content:center;font-weight:700;
-                        color:#E8D9C5;flex-shrink:0;overflow:hidden;font-size:.9rem">${avatEl}</div>
-            <div style="min-width:0">
-              <div style="font-size:.88rem;font-weight:600">${esc(name)}</div>
-              <div style="font-size:.75rem;color:var(--text3)">@${esc(u.username ?? '')}</div>
+        <div class="follow-row" id="frow_${uid_safe}">
+          <div class="follow-user" onclick="goToChat('${uid_safe}','${un_safe}','${nm_safe}')">
+            <div class="follow-avt">${avatEl}</div>
+            <div class="follow-info">
+              <div class="follow-name">${esc(name)}</div>
+              <div class="follow-handle">${handle}</div>
             </div>
           </div>
-          <div style="display:flex;gap:6px;flex-shrink:0">
-            <button onclick="startChat('${esc(u.id)}','${esc(u.username??'')}','${esc(name)}')"
-                    style="background:linear-gradient(135deg,#6E8B5E,#2D5A27);border:none;
-                           border-radius:99px;padding:5px 12px;color:#E8D9C5;
-                           font-size:.75rem;font-weight:600;cursor:pointer;font-family:inherit">
+          <div class="follow-actions">
+            <button class="follow-msg-btn" onclick="goToChat('${uid_safe}','${un_safe}','${nm_safe}')">
               💬 ${LANG === 'ar' ? 'رسالة' : 'Message'}
             </button>
-            <button onclick="toggleFollow('${esc(u.id)}','${esc(name)}')"
-                    style="background:var(--surface2);border:1px solid var(--border);
-                           border-radius:99px;padding:5px 10px;color:var(--text2);
-                           font-size:.75rem;cursor:pointer;font-family:inherit">
-              ✕
+            <button class="follow-unf-btn" onclick="toggleFollow('${uid_safe}','${nm_safe}')">
+              ${LANG === 'ar' ? 'إلغاء' : 'Unfollow'}
             </button>
           </div>
         </div>`;
@@ -1770,6 +1832,98 @@ async function renderFollowing() {
     container.innerHTML = `<p style="color:var(--danger);font-size:.83rem">${esc(e.message)}</p>`;
   }
 }
+
+/** Switch between Following / Followers tabs */
+window.switchFollowTab = tab => {
+  const tF  = $('tabFollowing');
+  const tFr = $('tabFollowers');
+  if (tab === 'following') {
+    tF.style.color              = 'var(--accent)';
+    tF.style.borderBottomColor  = 'var(--accent)';
+    tF.style.fontWeight         = '700';
+    tFr.style.color             = 'var(--text2)';
+    tFr.style.borderBottomColor = 'transparent';
+    tFr.style.fontWeight        = '600';
+    renderFollowing();
+  } else {
+    tFr.style.color             = 'var(--accent)';
+    tFr.style.borderBottomColor = 'var(--accent)';
+    tFr.style.fontWeight        = '700';
+    tF.style.color              = 'var(--text2)';
+    tF.style.borderBottomColor  = 'transparent';
+    tF.style.fontWeight         = '600';
+    renderFollowers();
+  }
+};
+
+/** Render followers list (users who follow current user) */
+async function renderFollowers() {
+  const container = $('followingList');
+  if (!container) return;
+  container.innerHTML = '<div class="loading"><div class="spin"></div></div>';
+  try {
+    const uid  = auth.currentUser.uid;
+    const snap = await getDocs(query(
+      collection(db, 'users'),
+      where('following', 'array-contains', uid)
+    ));
+    if (snap.empty) {
+      container.innerHTML = `
+        <p style="color:var(--text3);font-size:.84rem;padding:12px 0;text-align:center">
+          ${LANG === 'ar' ? 'لا يوجد متابعون بعد' : 'No followers yet'}
+        </p>`;
+      return;
+    }
+    const myFollowing = UDATA.following ?? [];
+    container.innerHTML = snap.docs.map(d => {
+      const u       = { id: d.id, ...d.data() };
+      const name    = u.displayName ?? u.username ?? 'User';
+      const handle  = u.username ? `@${esc(u.username)}` : '';
+      const isF     = myFollowing.includes(u.id);
+      const avatEl  = u.avatarBase64
+        ? `<img src="${u.avatarBase64}" alt="${esc(name)}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`
+        : esc(name[0]).toUpperCase();
+      return `
+        <div class="follow-row">
+          <div class="follow-user" onclick="goToChat('${esc(u.id)}','${esc(u.username??'')}','${esc(name)}')">
+            <div class="follow-avt">${avatEl}</div>
+            <div class="follow-info">
+              <div class="follow-name">${esc(name)}</div>
+              <div class="follow-handle">${handle}</div>
+            </div>
+          </div>
+          <div class="follow-actions">
+            <button class="follow-msg-btn" onclick="goToChat('${esc(u.id)}','${esc(u.username??'')}','${esc(name)}')">
+              💬 ${LANG === 'ar' ? 'رسالة' : 'Message'}
+            </button>
+            <button onclick="toggleFollow('${esc(u.id)}','${esc(name)}')" id="fBtn_${esc(u.id)}"
+                    style="background:${isF ? 'var(--surface2)' : 'linear-gradient(135deg,#6E8B5E,#2D5A27)'};
+                           border:1px solid ${isF ? 'var(--border)' : 'transparent'};
+                           color:${isF ? 'var(--text2)' : '#E8D9C5'};
+                           border-radius:99px;padding:6px 12px;font-size:.75rem;
+                           font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap">
+              ${isF ? (LANG === 'ar' ? '✓ متابَع' : '✓ Following') : (LANG === 'ar' ? '+ تابع' : '+ Follow')}
+            </button>
+          </div>
+        </div>`;
+    }).join('');
+  } catch (e) {
+    container.innerHTML = `<p style="color:var(--danger);font-size:.83rem">${esc(e.message)}</p>`;
+  }
+}
+
+/** Scroll to following section */
+window.scrollToFollowing = () => {
+  const el = $('followingSection');
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
+/** Go to chat from profile — navigates to messages tab then opens chat */
+window.goToChat = async (uid, username, name) => {
+  showScreen('APP');
+  navTo('M');
+  await startChat(uid, username, name);
+};
 
 /** Deterministic chat ID from two user IDs */
 const getChatId = (uid1, uid2) => [uid1, uid2].sort().join('_');
