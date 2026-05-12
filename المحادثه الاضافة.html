@@ -1,0 +1,2551 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="description" content="Levi Note — Track your habits. Build your life." />
+  <meta name="theme-color" content="#0D1A0F" />
+  <title>Levi Note</title>
+
+  <!-- ═══════════════════════════════════════════
+       DESIGN TOKENS — Neo Nature Palette
+       Dark  : Forest green bg, warm sand text
+       Light : Warm sand bg, forest green text
+  ═══════════════════════════════════════════ -->
+  <style>
+    /* ── Tokens ── */
+    :root {
+      --bg       : #0D1A0F;
+      --surface  : #162318;
+      --surface2 : #1E2E1F;
+      --border   : rgba(110,139,94,.20);
+      --border-hi: rgba(110,139,94,.45);
+      --accent   : #6E8B5E;
+      --accent2  : #4A7A3A;
+      --text     : #E8D9C5;
+      --text2    : rgba(232,217,197,.60);
+      --text3    : rgba(232,217,197,.35);
+      --success  : #6E8B5E;
+      --danger   : #C0614A;
+      --warn     : #C8A96E;
+      --shadow   : 0 4px 16px rgba(0,0,0,.35);
+      --r        : 16px;
+      --rs       : 12px;
+      --rx       : 10px;
+      --fn       : -apple-system,"SF Pro Display","SF Pro Text",BlinkMacSystemFont,sans-serif;
+      --fn-ar    : -apple-system,"SF Arabic","Geeza Pro",BlinkMacSystemFont,sans-serif;
+    }
+
+    /* Light Mode overrides */
+    .lm {
+      --bg       : #F5F0E8;
+      --surface  : #FFFFFF;
+      --surface2 : #F0EBE0;
+      --border   : rgba(110,139,94,.18);
+      --border-hi: rgba(110,139,94,.45);
+      --text     : #1A2E1A;
+      --text2    : rgba(26,46,26,.55);
+      --text3    : rgba(26,46,26,.35);
+      --accent   : #2D5A27;
+      --accent2  : #6E8B5E;
+      --warn     : #8B6914;
+      --danger   : #A04030;
+      --shadow   : 0 2px 8px rgba(0,0,0,.08);
+    }
+    .lm .snum { background:linear-gradient(135deg,#1A2E1A,#2D5A27);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+    .lm .pbar { background:rgba(0,0,0,.08); }
+    .lm .hstr { color:#8B6914; }
+    .lm .srp  { color:#2D5A27; }
+    .lm .strv { color:#8B6914; }
+
+    /* ── Reset ── */
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    html, body { height:100%; }
+    body {
+      font-family:var(--fn);
+      background:var(--bg);
+      color:var(--text);
+      min-height:100dvh;
+      overflow-x:hidden;
+      -webkit-font-smoothing:antialiased;
+      transition:background .3s, color .25s;
+    }
+    body.ar, body.ar * { font-family:var(--fn-ar) !important; }
+    body.ar           { direction:rtl; }
+
+    /* ── Animations ── */
+    @keyframes pop  { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
+    @keyframes spin { to   { transform:rotate(360deg); } }
+
+    /* ── Screen Manager ── */
+    .scr     { display:none; position:relative; z-index:1; }
+    .scr.on  { display:flex; flex-direction:column; min-height:100dvh; }
+
+    /* ─────────────────────────────────────────
+       AUTH — Login / Register / Forgot / Verify
+    ───────────────────────────────────────── */
+    .auth-wrap,
+    .verify-wrap,
+    .setup-wrap {
+      flex:1; display:flex; align-items:center; justify-content:center;
+      padding:24px 18px; min-height:100dvh; background:var(--bg);
+    }
+    .auth-card,
+    .verify-card,
+    .setup-card {
+      width:100%; max-width:400px;
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:var(--r);
+      padding:32px 26px;
+      box-shadow:var(--shadow);
+      animation:pop .4s cubic-bezier(.22,1,.36,1);
+    }
+    .verify-card { text-align:center; }
+
+    .brand        { text-align:center; margin-bottom:22px; }
+    .brand-name   { font-size:1.85rem; font-weight:700; letter-spacing:-.5px; background:linear-gradient(135deg,#E8D9C5,#6E8B5E); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .brand-tag    { color:var(--text2); font-size:.86rem; margin-top:4px; }
+
+    .btn-google   { width:100%; padding:13px; border:1px solid var(--border-hi); border-radius:var(--rs); background:var(--surface2); color:var(--text); font-size:.92rem; font-weight:600; font-family:inherit; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; transition:border-color .18s; margin-bottom:16px; }
+    .btn-google:hover { border-color:var(--accent); }
+    .btn-google svg   { width:18px; height:18px; flex-shrink:0; }
+
+    .divider      { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+    .divider-line { flex:1; height:1px; background:var(--border); }
+    .divider-txt  { font-size:.74rem; color:var(--text3); font-weight:500; white-space:nowrap; }
+
+    /* Form elements */
+    .fld  { margin-bottom:13px; }
+    .flbl { display:block; font-size:.72rem; font-weight:600; color:var(--text2); margin-bottom:6px; text-transform:uppercase; letter-spacing:.6px; }
+    .finp {
+      width:100%; background:var(--surface2); border:1px solid var(--border);
+      border-radius:var(--rx); padding:12px 14px; color:var(--text);
+      font-size:.94rem; font-family:inherit; outline:none; transition:border-color .18s;
+    }
+    .finp:focus         { border-color:var(--accent); }
+    .finp::placeholder  { color:var(--text3); }
+    .fhint              { font-size:.72rem; color:var(--text3); margin-top:5px; line-height:1.4; }
+
+    /* Alert boxes */
+    .errbx, .sukbx { display:none; padding:10px 14px; border-radius:var(--rx); font-size:.83rem; margin-bottom:13px; }
+    .errbx          { background:rgba(192,97,74,.10); border:1px solid rgba(192,97,74,.28); color:var(--danger); }
+    .sukbx          { background:rgba(110,139,94,.10); border:1px solid rgba(110,139,94,.28); color:var(--success); }
+    .errbx.on, .sukbx.on { display:block; }
+
+    /* Buttons */
+    .btn-main {
+      width:100%; padding:13px; border:none; border-radius:var(--rs);
+      background:linear-gradient(135deg,#6E8B5E,#2D5A27);
+      color:#E8D9C5; font-size:.95rem; font-weight:700; font-family:inherit;
+      cursor:pointer; box-shadow:0 3px 12px rgba(110,139,94,.22);
+      transition:opacity .18s, transform .12s; margin-top:3px;
+    }
+    .btn-main:hover              { opacity:.9; }
+    .btn-main:active             { transform:scale(.98); }
+    .btn-main:disabled           { opacity:.5; cursor:not-allowed; }
+    .btn-sec {
+      width:100%; padding:12px; border:1px solid var(--border); border-radius:var(--rs);
+      background:var(--surface2); color:var(--text2); font-size:.9rem; font-weight:500;
+      font-family:inherit; cursor:pointer; transition:border-color .18s, color .18s; margin-top:9px;
+    }
+    .btn-sec:hover { border-color:var(--accent); color:var(--text); }
+
+    /* Verify screen */
+    .verify-ico   { font-size:3rem; margin-bottom:14px; }
+    .verify-title { font-size:1.2rem; font-weight:700; margin-bottom:8px; }
+    .verify-sub   { color:var(--text2); font-size:.86rem; line-height:1.6; margin-bottom:20px; }
+    .verify-email { color:var(--accent); font-weight:600; }
+
+    /* Auth links */
+    .auth-link-row { text-align:center; margin-top:16px; color:var(--text2); font-size:.84rem; }
+    .auth-link     { background:none; border:none; color:var(--accent); font-size:.84rem; cursor:pointer; font-family:inherit; font-weight:600; margin-left:4px; }
+    .auth-link-center { text-align:center; margin-top:14px; }
+
+    /* ─────────────────────────────────────────
+       APP SHELL
+    ───────────────────────────────────────── */
+    .topbar {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:14px 18px; background:var(--surface); border-bottom:1px solid var(--border);
+      position:sticky; top:0; z-index:90;
+    }
+    .tlogo  { font-size:1.1rem; font-weight:700; letter-spacing:-.25px; background:linear-gradient(135deg,#E8D9C5,#6E8B5E); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .tright { display:flex; gap:7px; }
+    .pill   { background:var(--surface2); border:1px solid var(--border); color:var(--text2); border-radius:99px; padding:6px 13px; font-size:.76rem; font-weight:600; font-family:inherit; cursor:pointer; transition:border-color .18s, color .18s; }
+    .pill:hover { border-color:var(--accent); color:var(--text); }
+
+    .apc { flex:1; overflow-y:auto; padding-bottom:86px; }
+    .pg  { display:none; padding:16px 15px; max-width:620px; margin:0 auto; }
+    .pg.on { display:block; }
+
+    /* Bottom Navigation */
+    .bnav {
+      position:fixed; bottom:0; left:0; right:0;
+      background:var(--surface); border-top:1px solid var(--border);
+      display:flex; padding:10px 0 max(18px, env(safe-area-inset-bottom)); z-index:90;
+    }
+    .nb {
+      flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;
+      border:none; background:transparent; color:var(--text3); font-size:.67rem;
+      font-weight:600; font-family:inherit; cursor:pointer; transition:color .18s; letter-spacing:.3px;
+    }
+    .nb .ni       { font-size:1.28rem; transition:transform .2s; }
+    .nb.on        { color:var(--accent); }
+    .nb.on .ni    { transform:scale(1.12); }
+
+    /* ─────────────────────────────────────────
+       HOME PAGE
+    ───────────────────────────────────────── */
+    /* Quote card */
+    .qcard  { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:18px 20px; margin-bottom:14px; animation:pop .4s cubic-bezier(.22,1,.36,1); }
+    .qmark  { font-size:2rem; line-height:1; color:var(--accent); opacity:.5; margin-bottom:-6px; }
+    .qtxt   { font-size:.88rem; line-height:1.68; color:var(--text); font-style:italic; }
+    .qauth  { font-size:.73rem; color:var(--accent); font-weight:600; margin-top:9px; }
+
+    /* Stats row */
+    .sgrid  { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px; }
+    .stile  { background:var(--surface); border:1px solid var(--border); border-radius:var(--rs); padding:14px 10px; text-align:center; animation:pop .4s cubic-bezier(.22,1,.36,1); }
+    .snum   { font-size:1.45rem; font-weight:700; letter-spacing:-.4px; background:linear-gradient(135deg,#E8D9C5,#6E8B5E); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .slbl   { font-size:.65rem; color:var(--text3); margin-top:3px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; }
+
+    /* Section header */
+    .shdr   { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+    .stit   { font-size:.97rem; font-weight:700; }
+    .btnadd { display:flex; align-items:center; gap:4px; background:linear-gradient(135deg,#6E8B5E,#2D5A27); border:none; border-radius:99px; padding:8px 14px; color:#E8D9C5; font-size:.8rem; font-weight:700; font-family:inherit; cursor:pointer; box-shadow:0 3px 10px rgba(110,139,94,.2); transition:opacity .18s, transform .12s; }
+    .btnadd:active { transform:scale(.96); }
+
+    /* Habit cards */
+    .hlist  { display:flex; flex-direction:column; gap:8px; }
+    .hcard  { background:var(--surface); border:1px solid var(--border); border-radius:var(--rs); padding:14px 15px; display:flex; align-items:center; gap:12px; transition:border-color .18s; animation:pop .3s cubic-bezier(.22,1,.36,1); }
+    .hcard:hover  { border-color:var(--accent); }
+    .hcard.dk     { border-color:rgba(110,139,94,.35); background:rgba(110,139,94,.04); }
+    .hcard:nth-child(1) { animation-delay:.04s; }
+    .hcard:nth-child(2) { animation-delay:.08s; }
+    .hcard:nth-child(3) { animation-delay:.12s; }
+    .hcard:nth-child(4) { animation-delay:.16s; }
+    .hcard:nth-child(5) { animation-delay:.20s; }
+
+    .hchk { width:32px; height:32px; border-radius:50%; border:2px solid var(--border-hi); background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all .2s; font-size:.9rem; }
+    .hchk.ok        { background:linear-gradient(135deg,#6E8B5E,#2D5A27); border-color:transparent; box-shadow:0 2px 8px rgba(110,139,94,.3); }
+    .hchk:hover:not(.ok) { border-color:var(--accent); background:rgba(110,139,94,.08); }
+
+    .hbody  { flex:1; min-width:0; }
+    .hname  { font-size:.9rem; font-weight:600; color:var(--text); margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .hmeta  { display:flex; align-items:center; gap:9px; margin-bottom:5px; }
+    .hstr   { font-size:.73rem; color:var(--warn); font-weight:700; }
+    .hpct   { font-size:.73rem; color:var(--text3); }
+
+    .pbar   { height:3px; background:var(--surface2); border-radius:99px; overflow:hidden; }
+    .pfill  { height:100%; border-radius:99px; background:linear-gradient(90deg,#6E8B5E,#4A7A3A); transition:width .45s ease; }
+
+    .hacts  { display:flex; gap:6px; flex-shrink:0; }
+    .hbtn   { width:30px; height:30px; border-radius:50%; background:var(--surface2); border:1px solid var(--border); color:var(--text2); font-size:.82rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .18s; flex-shrink:0; }
+    .hbtn:hover     { background:var(--border-hi); color:var(--text); }
+    .hbtn.del:hover { color:var(--danger); border-color:rgba(192,97,74,.35); background:rgba(192,97,74,.08); }
+
+    /* Empty / Loading */
+    .empty  { text-align:center; padding:50px 20px; color:var(--text3); }
+    .eico   { font-size:3rem; margin-bottom:14px; opacity:.55; }
+    .etxt   { font-size:.88rem; line-height:1.7; }
+    .loading { text-align:center; padding:36px; color:var(--text2); font-size:.9rem; }
+    .spin   { display:inline-block; width:22px; height:22px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin .7s linear infinite; margin-bottom:10px; }
+
+    /* ─────────────────────────────────────────
+       STATS PAGE
+    ───────────────────────────────────────── */
+    .gcard  { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:18px; margin-bottom:12px; animation:pop .4s cubic-bezier(.22,1,.36,1); }
+    .ctit   { font-size:.7rem; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:1px; margin-bottom:14px; }
+    .srow   { display:flex; align-items:center; gap:11px; margin-bottom:12px; }
+    .srow:last-child { margin-bottom:0; }
+    .srn    { flex:1; font-size:.86rem; font-weight:500; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .srb    { flex:2; height:5px; background:var(--surface2); border-radius:99px; overflow:hidden; }
+    .srf    { height:100%; border-radius:99px; background:linear-gradient(90deg,#6E8B5E,#4A7A3A); }
+    .srp    { font-size:.8rem; font-weight:700; color:var(--accent); width:36px; text-align:right; }
+    .strw   { display:flex; align-items:center; justify-content:space-between; padding:11px 0; border-bottom:1px solid var(--border); }
+    .strw:last-child { border-bottom:none; padding-bottom:0; }
+    .strnm  { font-size:.86rem; font-weight:500; }
+    .strv   { font-size:.92rem; font-weight:700; color:var(--warn); }
+
+    /* ─────────────────────────────────────────
+       MESSAGES PAGE
+    ───────────────────────────────────────── */
+    .chat-row { display:flex; align-items:center; gap:12px; padding:14px 16px; border-bottom:1px solid var(--border); cursor:pointer; transition:background .15s; }
+    .chat-row:last-child { border-bottom:none; }
+    .chat-row:hover      { background:var(--surface2); }
+    .chat-avt { width:42px; height:42px; border-radius:50%; background:linear-gradient(135deg,#6E8B5E,#4A7A3A); display:flex; align-items:center; justify-content:center; font-size:1rem; font-weight:700; color:#E8D9C5; flex-shrink:0; overflow:hidden; }
+    .chat-avt img { width:100%; height:100%; object-fit:cover; }
+    .chat-info { flex:1; min-width:0; }
+    .chat-name { font-size:.9rem; font-weight:600; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .chat-last { font-size:.78rem; color:var(--text3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .chat-time { font-size:.7rem; color:var(--text3); flex-shrink:0; }
+
+    /* Chat UI moved to PROFESSIONAL CHAT UI section */
+
+    /* User search results */
+    .user-result { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:var(--rx); cursor:pointer; transition:background .15s; }
+    .user-result:hover  { background:var(--surface2); }
+    .user-avt-sm { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,#6E8B5E,#4A7A3A); display:flex; align-items:center; justify-content:center; font-size:.9rem; font-weight:700; color:#E8D9C5; flex-shrink:0; overflow:hidden; }
+    .user-avt-sm img { width:100%; height:100%; object-fit:cover; }
+    .user-rname  { font-size:.88rem; font-weight:600; }
+    .user-rhandle { font-size:.75rem; color:var(--text3); }
+
+    /* ─────────────────────────────────────────
+       PROFILE PAGE
+    ───────────────────────────────────────── */
+    .prof-hero  { display:flex; flex-direction:column; align-items:center; padding:26px 20px 20px; margin-bottom:12px; }
+    .avt        { width:72px; height:72px; border-radius:50%; background:linear-gradient(135deg,#6E8B5E,#4A7A3A); display:flex; align-items:center; justify-content:center; font-size:1.8rem; font-weight:700; color:#E8D9C5; margin-bottom:12px; box-shadow:0 0 0 3px rgba(110,139,94,.18); overflow:hidden; }
+    .avt img    { width:100%; height:100%; object-fit:cover; }
+    .pname      { font-size:1.15rem; font-weight:700; margin-bottom:3px; }
+    .phandle    { font-size:.83rem; color:var(--text2); }
+    .pbadge     { display:inline-flex; align-items:center; gap:5px; background:rgba(110,139,94,.10); border:1px solid rgba(110,139,94,.22); color:var(--success); border-radius:99px; padding:4px 12px; font-size:.73rem; font-weight:600; margin-top:8px; }
+
+    .prefr  { display:flex; align-items:center; justify-content:space-between; background:var(--surface); border:1px solid var(--border); border-radius:var(--rs); padding:14px 16px; margin-bottom:8px; }
+    .plft   { display:flex; align-items:center; gap:12px; }
+    .pico   { font-size:1.05rem; width:22px; text-align:center; }
+    .plbl   { font-size:.88rem; font-weight:500; }
+    .psub   { font-size:.73rem; color:var(--text3); margin-top:2px; }
+
+    /* Toggle switch */
+    .tog    { width:44px; height:25px; border-radius:99px; background:var(--surface2); border:1px solid var(--border); cursor:pointer; position:relative; transition:background .22s; flex-shrink:0; }
+    .tog.on { background:linear-gradient(135deg,#6E8B5E,#2D5A27); border-color:transparent; }
+    .tog::after { content:''; position:absolute; width:19px; height:19px; border-radius:50%; background:#fff; top:2px; left:2px; transition:transform .22s cubic-bezier(.22,1,.36,1); box-shadow:0 1px 4px rgba(0,0,0,.2); }
+    .tog.on::after { transform:translateX(19px); }
+
+    .tinp   { background:var(--surface2); border:1px solid var(--border); border-radius:var(--rx); padding:7px 11px; color:var(--text); font-family:inherit; font-size:.86rem; outline:none; }
+    .btn-logout { width:100%; padding:13px; border-radius:var(--rs); background:rgba(192,97,74,.08); border:1px solid rgba(192,97,74,.20); color:var(--danger); font-size:.9rem; font-weight:600; font-family:inherit; cursor:pointer; transition:background .18s; margin-top:5px; }
+    .btn-logout:hover { background:rgba(192,97,74,.14); }
+
+    /* ─────────────────────────────────────────
+       ADMIN DASHBOARD
+    ───────────────────────────────────────── */
+    .admin-wrap   { flex:1; overflow-y:auto; padding:18px 15px 40px; max-width:700px; margin:0 auto; width:100%; }
+    .admin-hdr    { display:flex; align-items:center; gap:12px; margin-bottom:18px; }
+    .admin-badge  { background:linear-gradient(135deg,#C8A96E,#C0614A); color:#fff; border-radius:99px; padding:4px 14px; font-size:.75rem; font-weight:700; letter-spacing:.5px; }
+    .admin-title  { font-size:1.2rem; font-weight:700; }
+    .kpi-grid     { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:14px; }
+    .kpi          { background:var(--surface); border:1px solid var(--border); border-radius:var(--rs); padding:16px; text-align:center; }
+    .kpi-num      { font-size:2rem; font-weight:700; background:linear-gradient(135deg,#E8D9C5,#6E8B5E); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .kpi-lbl      { font-size:.7rem; color:var(--text3); font-weight:600; text-transform:uppercase; letter-spacing:.5px; margin-top:3px; }
+    .user-row     { display:flex; align-items:flex-start; gap:12px; padding:14px 0; border-bottom:1px solid var(--border); }
+    .user-row:last-child { border-bottom:none; }
+    .user-avt     { width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg,#6E8B5E,#4A7A3A); display:flex; align-items:center; justify-content:center; font-size:.9rem; font-weight:700; color:#E8D9C5; flex-shrink:0; overflow:hidden; }
+    .user-avt img { width:100%; height:100%; object-fit:cover; }
+    .user-info    { flex:1; min-width:0; }
+    .user-name    { font-size:.88rem; font-weight:600; margin-bottom:3px; }
+    .user-detail  { font-size:.72rem; color:var(--text3); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .user-badge   { display:inline-block; font-size:.68rem; background:var(--surface2); border:1px solid var(--border); border-radius:99px; padding:2px 8px; color:var(--text2); margin-top:4px; }
+    .admin-refresh { background:var(--surface2); border:1px solid var(--border); border-radius:99px; padding:7px 16px; color:var(--text2); font-size:.78rem; font-weight:600; font-family:inherit; cursor:pointer; transition:border-color .18s, color .18s; }
+    .admin-refresh:hover { border-color:var(--accent); color:var(--text); }
+
+    /* ─────────────────────────────────────────
+       USERNAME SETUP
+    ───────────────────────────────────────── */
+    .setup-title  { font-size:1.3rem; font-weight:700; margin-bottom:6px; text-align:center; }
+    .setup-sub    { color:var(--text2); font-size:.86rem; text-align:center; margin-bottom:24px; line-height:1.5; }
+    .ucheck       { display:flex; align-items:center; gap:6px; font-size:.78rem; margin-top:6px; min-height:18px; }
+    .ucheck.ok    { color:var(--success); }
+    .ucheck.err   { color:var(--danger); }
+    .ucheck.chk   { color:var(--text3); }
+
+    /* ─────────────────────────────────────────
+       EDIT PROFILE
+    ───────────────────────────────────────── */
+    .edit-avt     { width:80px; height:80px; border-radius:50%; background:linear-gradient(135deg,#6E8B5E,#4A7A3A); display:flex; align-items:center; justify-content:center; font-size:2rem; font-weight:700; color:#E8D9C5; margin:0 auto 16px; cursor:pointer; position:relative; overflow:hidden; box-shadow:0 0 0 3px rgba(110,139,94,.18); }
+    .edit-avt img { width:100%; height:100%; object-fit:cover; }
+    .edit-avt-ov  { position:absolute; inset:0; background:rgba(0,0,0,.4); display:flex; align-items:center; justify-content:center; font-size:1.2rem; opacity:0; transition:opacity .2s; }
+    .edit-avt:hover .edit-avt-ov { opacity:1; }
+
+    /* ─────────────────────────────────────────
+       MODAL
+    ───────────────────────────────────────── */
+    .ovl    { display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:200; align-items:center; justify-content:center; padding:18px; }
+    .ovl.on { display:flex; }
+    .modal  { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:24px 20px; width:100%; max-width:390px; box-shadow:var(--shadow); animation:pop .25s cubic-bezier(.22,1,.36,1); }
+    .mtit   { font-size:1rem; font-weight:700; margin-bottom:16px; }
+    .macts  { display:flex; gap:9px; margin-top:16px; }
+    .bcnc   { flex:1; padding:12px; border-radius:var(--rx); background:var(--surface2); border:1px solid var(--border); color:var(--text2); font-family:inherit; font-size:.88rem; font-weight:500; cursor:pointer; transition:border-color .18s, color .18s; }
+    .bcnc:hover { border-color:var(--accent); color:var(--text); }
+    .bok    { flex:1; padding:12px; border-radius:var(--rx); background:linear-gradient(135deg,#6E8B5E,#2D5A27); border:none; color:#E8D9C5; font-family:inherit; font-size:.88rem; font-weight:700; cursor:pointer; transition:opacity .18s; }
+    .bok:hover { opacity:.9; }
+    .dtxt   { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:var(--rx); padding:12px; color:var(--text); font-family:inherit; font-size:.88rem; resize:vertical; min-height:108px; outline:none; line-height:1.6; transition:border-color .18s; }
+    .dtxt:focus { border-color:var(--accent); }
+    .dtxt::placeholder { color:var(--text3); }
+
+    /* ══════════════════════════════════════
+       PROFESSIONAL CHAT UI
+    ══════════════════════════════════════ */
+
+    /* Chat Topbar */
+    .chat-topbar {
+      display:flex; align-items:center; gap:12px;
+      padding:12px 16px;
+      background:var(--surface);
+      border-bottom:1px solid var(--border);
+      position:sticky; top:0; z-index:90;
+      min-height:64px;
+    }
+    .chat-back-btn {
+      width:36px; height:36px; border-radius:50%;
+      border:none; background:var(--surface2);
+      color:var(--text2); cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      flex-shrink:0; transition:background .18s, color .18s;
+    }
+    .chat-back-btn:hover { background:var(--border-hi); color:var(--text); }
+
+    .chat-header-info {
+      display:flex; align-items:center; gap:11px;
+      flex:1; min-width:0; cursor:pointer;
+    }
+    .chat-header-avt {
+      width:40px; height:40px; border-radius:50%;
+      background:linear-gradient(135deg,#6E8B5E,#4A7A3A);
+      display:flex; align-items:center; justify-content:center;
+      font-size:1rem; font-weight:700; color:#E8D9C5;
+      flex-shrink:0; overflow:hidden;
+      box-shadow:0 0 0 2px rgba(110,139,94,.2);
+    }
+    .chat-header-avt img { width:100%; height:100%; object-fit:cover; }
+    .chat-header-name {
+      font-size:.95rem; font-weight:700;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .chat-header-status {
+      font-size:.72rem; color:var(--success); font-weight:500; margin-top:1px;
+    }
+    .chat-header-actions { display:flex; gap:6px; flex-shrink:0; }
+    .chat-action-btn {
+      width:36px; height:36px; border-radius:50%;
+      border:none; background:var(--surface2);
+      color:var(--text2); cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      transition:background .18s, color .18s;
+    }
+    .chat-action-btn:hover { background:var(--border-hi); color:var(--text); }
+
+    /* Info Panel */
+    .chat-info-panel {
+      background:var(--surface);
+      border-bottom:1px solid var(--border);
+      padding:20px 16px;
+      text-align:center;
+      animation:pop .25s cubic-bezier(.22,1,.36,1);
+    }
+    .chat-info-avt {
+      width:64px; height:64px; border-radius:50%;
+      background:linear-gradient(135deg,#6E8B5E,#4A7A3A);
+      display:flex; align-items:center; justify-content:center;
+      font-size:1.6rem; font-weight:700; color:#E8D9C5;
+      margin:0 auto 12px; overflow:hidden;
+      box-shadow:0 0 0 3px rgba(110,139,94,.2);
+    }
+    .chat-info-avt img { width:100%; height:100%; object-fit:cover; }
+    .chat-info-name   { font-size:1.05rem; font-weight:700; margin-bottom:4px; }
+    .chat-info-handle { font-size:.82rem; color:var(--text2); margin-bottom:14px; }
+    .chat-info-actions { display:flex; justify-content:center; gap:10px; }
+    .chat-info-action {
+      display:flex; align-items:center; gap:6px;
+      background:var(--surface2); border:1px solid var(--border);
+      border-radius:99px; padding:7px 16px;
+      color:var(--text2); font-size:.8rem; font-weight:600;
+      font-family:inherit; cursor:pointer; transition:all .18s;
+    }
+    .chat-info-action:hover { border-color:var(--accent); color:var(--text); }
+
+    /* Messages Area */
+    .chat-msgs {
+      flex:1; overflow-y:auto; overflow-x:hidden;
+      padding:16px 14px 100px;
+      display:flex; flex-direction:column; gap:4px;
+      scroll-behavior:smooth;
+    }
+
+    /* Date Separator */
+    .chat-date-sep {
+      display:flex; align-items:center; gap:10px;
+      margin:12px 0 8px;
+    }
+    .chat-date-line { flex:1; height:1px; background:var(--border); }
+    .chat-date-txt  { font-size:.72rem; color:var(--text3); font-weight:500; white-space:nowrap; }
+
+    /* Message groups */
+    .msg-group      { display:flex; flex-direction:column; gap:2px; margin-bottom:6px; }
+    .msg-group.me   { align-items:flex-end; }
+    .msg-group.them { align-items:flex-start; }
+
+    /* Sender name (shown once per group) */
+    .msg-sender-name {
+      font-size:.72rem; font-weight:600;
+      color:var(--accent); margin-bottom:3px;
+      padding:0 14px;
+    }
+
+    /* Bubble row */
+    .msg-row        { display:flex; align-items:flex-end; gap:8px; }
+    .msg-group.me   .msg-row { flex-direction:row-reverse; }
+
+    /* Bubble avatar (them only) */
+    .msg-avt-sm {
+      width:28px; height:28px; border-radius:50%;
+      background:linear-gradient(135deg,#6E8B5E,#4A7A3A);
+      display:flex; align-items:center; justify-content:center;
+      font-size:.72rem; font-weight:700; color:#E8D9C5;
+      flex-shrink:0; overflow:hidden; margin-bottom:2px;
+    }
+    .msg-avt-sm img { width:100%; height:100%; object-fit:cover; }
+    .msg-avt-sm.hidden { visibility:hidden; }
+
+    /* Bubble */
+    .msg-bubble {
+      max-width:72%; padding:10px 14px;
+      font-size:.9rem; line-height:1.55;
+      word-break:break-word; white-space:pre-wrap;
+      position:relative;
+    }
+    .msg-group.me   .msg-bubble {
+      background:linear-gradient(135deg,#6E8B5E,#2D5A27);
+      color:#E8D9C5;
+      border-radius:18px 18px 4px 18px;
+      box-shadow:0 2px 8px rgba(110,139,94,.22);
+    }
+    .msg-group.them .msg-bubble {
+      background:var(--surface);
+      border:1px solid var(--border);
+      color:var(--text);
+      border-radius:18px 18px 18px 4px;
+      box-shadow:0 2px 8px rgba(0,0,0,.08);
+    }
+    /* First/last bubble radius adjustments */
+    .msg-group.me   .msg-row:first-child .msg-bubble { border-radius:18px 18px 4px 18px; }
+    .msg-group.me   .msg-row:last-child  .msg-bubble { border-radius:18px 4px 4px 18px;  }
+    .msg-group.them .msg-row:first-child .msg-bubble { border-radius:18px 18px 18px 4px; }
+    .msg-group.them .msg-row:last-child  .msg-bubble { border-radius:4px 18px 18px 4px;  }
+
+    /* Timestamp */
+    .msg-time {
+      font-size:.66rem; color:var(--text3);
+      padding:0 4px; margin-top:2px;
+      text-align:right; white-space:nowrap;
+    }
+    .msg-group.them .msg-time { text-align:left; }
+
+    /* Tick (read receipt) */
+    .msg-tick { font-size:.68rem; color:rgba(232,217,197,.6); margin-left:3px; }
+
+    /* Typing indicator */
+    .typing-bar {
+      display:flex; align-items:center; gap:8px;
+      padding:6px 18px; background:var(--bg);
+    }
+    .typing-dots { display:flex; gap:4px; align-items:center; }
+    .typing-dots span {
+      width:7px; height:7px; border-radius:50%;
+      background:var(--text3);
+      animation:typingBounce 1.2s ease-in-out infinite;
+    }
+    .typing-dots span:nth-child(2) { animation-delay:.2s; }
+    .typing-dots span:nth-child(3) { animation-delay:.4s; }
+    @keyframes typingBounce {
+      0%,80%,100% { transform:translateY(0); opacity:.4; }
+      40%          { transform:translateY(-5px); opacity:1; }
+    }
+    .typing-txt { font-size:.78rem; color:var(--text3); font-style:italic; }
+
+    /* Chat Input Bar */
+    .chat-input-bar {
+      position:fixed; bottom:0; left:0; right:0;
+      background:var(--surface);
+      border-top:1px solid var(--border);
+      padding:10px 14px max(12px, env(safe-area-inset-bottom));
+      display:flex; align-items:flex-end; gap:10px;
+      z-index:90;
+    }
+    .chat-input-wrap {
+      flex:1; background:var(--surface2);
+      border:1px solid var(--border);
+      border-radius:22px; padding:10px 16px;
+      display:flex; align-items:flex-end;
+      transition:border-color .18s;
+      max-height:120px; overflow:hidden;
+    }
+    .chat-input-wrap:focus-within { border-color:var(--accent); }
+    .chat-textarea {
+      flex:1; border:none; background:transparent;
+      color:var(--text); font-family:inherit; font-size:.92rem;
+      line-height:1.5; resize:none; outline:none;
+      max-height:100px; overflow-y:auto;
+      scrollbar-width:none;
+    }
+    .chat-textarea::-webkit-scrollbar { display:none; }
+    .chat-textarea::placeholder { color:var(--text3); }
+    .chat-send-btn {
+      width:44px; height:44px; border-radius:50%;
+      background:linear-gradient(135deg,#6E8B5E,#2D5A27);
+      border:none; color:#E8D9C5; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      flex-shrink:0; transition:transform .15s, opacity .18s;
+      box-shadow:0 3px 10px rgba(110,139,94,.25);
+    }
+    .chat-send-btn:hover  { opacity:.9; }
+    .chat-send-btn:active { transform:scale(.92); }
+
+    /* Empty chat */
+    .chat-empty {
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      flex:1; padding:40px 20px; color:var(--text3);
+      text-align:center; gap:12px;
+    }
+    .chat-empty-ico  { font-size:3rem; opacity:.5; }
+    .chat-empty-txt  { font-size:.88rem; line-height:1.6; }
+
+    /* ── Follow rows ── */
+    .follow-row         { display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border); }
+    .follow-row:last-child { border-bottom:none; }
+    .follow-user        { display:flex; align-items:center; gap:10px; flex:1; min-width:0; cursor:pointer; }
+    .follow-avt         { width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,#6E8B5E,#4A7A3A); display:flex; align-items:center; justify-content:center; font-size:.95rem; font-weight:700; color:#E8D9C5; flex-shrink:0; overflow:hidden; }
+    .follow-avt img     { width:100%; height:100%; object-fit:cover; }
+    .follow-info        { min-width:0; }
+    .follow-name        { font-size:.88rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .follow-handle      { font-size:.75rem; color:var(--text3); }
+    .follow-actions     { display:flex; gap:6px; flex-shrink:0; margin-left:8px; }
+    .follow-msg-btn     { background:linear-gradient(135deg,#6E8B5E,#2D5A27); border:none; border-radius:99px; padding:6px 12px; color:#E8D9C5; font-size:.75rem; font-weight:600; cursor:pointer; font-family:inherit; white-space:nowrap; }
+    .follow-unf-btn     { background:var(--surface2); border:1px solid var(--border); border-radius:99px; padding:6px 10px; color:var(--text2); font-size:.75rem; cursor:pointer; font-family:inherit; white-space:nowrap; transition:color .18s, border-color .18s; }
+    .follow-unf-btn:hover { color:var(--danger); border-color:rgba(192,97,74,.35); }
+    .follow-tab-btn     { flex:1; padding:14px; border:none; background:transparent; font-family:inherit; cursor:pointer; border-bottom:2px solid transparent; transition:color .18s, border-color .18s; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN: Login
+═══════════════════════════════════════════ -->
+<div id="AS" class="scr on">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="brand">
+        <div class="brand-name">Levi Note</div>
+        <div class="brand-tag" id="btag">Track your habits. Build your life.</div>
+      </div>
+
+      <button class="btn-google" onclick="loginGoogle()" id="btnG">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+        </svg>
+        <span id="btnGTxt">Continue with Google</span>
+      </button>
+
+      <div class="divider">
+        <div class="divider-line"></div>
+        <div class="divider-txt" id="divTxt">or continue with email</div>
+        <div class="divider-line"></div>
+      </div>
+
+      <div class="errbx" id="aerr" role="alert"></div>
+
+      <div class="fld">
+        <label class="flbl" for="le" id="lbe">Email</label>
+        <input class="finp" id="le" type="email" placeholder="you@example.com" autocomplete="email" />
+      </div>
+      <div class="fld">
+        <label class="flbl" for="lp" id="lbp">Password</label>
+        <input class="finp" id="lp" type="password" placeholder="••••••••" autocomplete="current-password" />
+      </div>
+
+      <button class="btn-main" onclick="doLogin()" id="btnl">Login</button>
+
+      <div class="auth-link-center" style="margin-top:14px">
+        <button class="auth-link" onclick="showScreen('FP')" id="btnForgot">Forgot password?</button>
+      </div>
+      <div class="auth-link-row">
+        <span id="noAccTxt">Don't have an account?</span>
+        <button class="auth-link" onclick="showScreen('RS')" id="btnGoReg">Create account</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN: Register
+═══════════════════════════════════════════ -->
+<div id="RS" class="scr">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="brand">
+        <div class="brand-name">Levi Note</div>
+        <div class="brand-tag" id="regTag">Create your account</div>
+      </div>
+
+      <button class="btn-google" onclick="loginGoogle()">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+        </svg>
+        <span>Continue with Google</span>
+      </button>
+
+      <div class="divider">
+        <div class="divider-line"></div>
+        <div class="divider-txt">or continue with email</div>
+        <div class="divider-line"></div>
+      </div>
+
+      <div class="errbx" id="rerr" role="alert"></div>
+
+      <div class="fld">
+        <label class="flbl" for="re" id="lbre">Email</label>
+        <input class="finp" id="re" type="email" placeholder="you@example.com" autocomplete="email" />
+      </div>
+      <div class="fld">
+        <label class="flbl" for="rp" id="lbrp">Password</label>
+        <input class="finp" id="rp" type="password" placeholder="Min 8 characters" autocomplete="new-password" />
+      </div>
+
+      <button class="btn-main" onclick="doRegister()" id="btnr">Create Account</button>
+
+      <div class="auth-link-row">
+        <span id="hasAccTxt">Already have an account?</span>
+        <button class="auth-link" onclick="showScreen('AS')" id="btnGoLogin">Login</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN: Forgot Password
+═══════════════════════════════════════════ -->
+<div id="FP" class="scr">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="brand">
+        <div class="brand-name" style="font-size:2.2rem">🔑</div>
+        <div class="brand-tag" id="fpTag">Reset your password</div>
+      </div>
+
+      <div class="errbx" id="fperr" role="alert"></div>
+      <div class="sukbx" id="fpsuk" role="status"></div>
+
+      <div class="fld">
+        <label class="flbl" for="fpe" id="fpLbl">Email</label>
+        <input class="finp" id="fpe" type="email" placeholder="you@example.com" />
+      </div>
+
+      <button class="btn-main" onclick="doReset()" id="btnReset">Send Reset Link</button>
+
+      <div class="auth-link-center" style="margin-top:14px">
+        <button class="auth-link" onclick="showScreen('AS')" id="btnBackLogin">← Back to Login</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN: Email Verification
+═══════════════════════════════════════════ -->
+<div id="VS" class="scr">
+  <div class="verify-wrap">
+    <div class="verify-card">
+      <div class="verify-ico" aria-hidden="true">📧</div>
+      <div class="verify-title" id="vtit">Check your email</div>
+      <div class="verify-sub">
+        We sent a verification link to <span class="verify-email" id="vemail"></span>.
+        Please verify before continuing.
+      </div>
+      <button class="btn-main" onclick="checkVerify()" id="btnVCheck">I've verified my email</button>
+      <button class="btn-sec"  onclick="resendVerify()" id="btnResend">Resend email</button>
+      <button class="btn-sec"  onclick="doLogout()"     id="btnVBack">Back to login</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN: Username Setup (first time)
+═══════════════════════════════════════════ -->
+<div id="US" class="scr">
+  <div class="setup-wrap">
+    <div class="setup-card">
+      <div class="brand" style="margin-bottom:16px">
+        <div class="brand-name">Levi Note</div>
+      </div>
+      <div class="setup-title" id="stit">Set up your profile</div>
+      <div class="setup-sub"  id="ssub">Choose a username and display name</div>
+
+      <div class="errbx" id="serr" role="alert"></div>
+
+      <div class="fld">
+        <label class="flbl" for="su" id="slbu">Username</label>
+        <input class="finp" id="su" type="text" placeholder="@username" autocomplete="off" oninput="liveCheckUsername(this,'uchk')" />
+        <div class="ucheck" id="uchk" role="status"></div>
+        <div class="fhint" id="shint">2–33 chars · a-z 0-9 _ . · no consecutive dots</div>
+      </div>
+      <div class="fld">
+        <label class="flbl" for="sn" id="slbn">Display Name</label>
+        <input class="finp" id="sn" type="text" placeholder="Your name" maxlength="40" />
+      </div>
+
+      <button class="btn-main" onclick="saveSetup()" id="btnSetup">Continue →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN: Main App
+═══════════════════════════════════════════ -->
+<div id="APP" class="scr">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="tlogo">Levi Note</div>
+    <div class="tright">
+      <button class="pill" id="lpill" onclick="toggleLang()"  aria-label="Switch language">🇸🇦 AR</button>
+      <button class="pill" id="tpill" onclick="toggleTheme()" aria-label="Switch theme">☀️</button>
+    </div>
+  </div>
+
+  <!-- Page container -->
+  <div class="apc">
+
+    <!-- ── HOME ── -->
+    <div class="pg on" id="pH">
+      <div class="qcard" role="blockquote">
+        <div class="qmark" aria-hidden="true">"</div>
+        <div class="qtxt" id="qt"></div>
+        <div class="qauth" id="qa"></div>
+      </div>
+      <div class="sgrid" role="group" aria-label="Stats">
+        <div class="stile"><div class="snum" id="st">0%</div><div class="slbl" id="ltod">Today</div></div>
+        <div class="stile"><div class="snum" id="sw">0%</div><div class="slbl" id="lwk">Week</div></div>
+        <div class="stile"><div class="snum" id="sm">0%</div><div class="slbl" id="lmo">Month</div></div>
+      </div>
+      <div class="shdr">
+        <div class="stit" id="lhab">My Habits</div>
+        <button class="btnadd" onclick="openAddHabit()" id="badd">＋ Add</button>
+      </div>
+      <div class="hlist" id="HL" role="list"></div>
+    </div>
+
+    <!-- ── STATS ── -->
+    <div class="pg" id="pS">
+      <div class="gcard"><div class="ctit" id="cth">This Month</div><div id="sth"></div></div>
+      <div class="gcard"><div class="ctit" id="cla">Last Month</div><div id="sla"></div></div>
+      <div class="gcard"><div class="ctit" id="cst">Streaks 🔥</div><div id="sst"></div></div>
+    </div>
+
+    <!-- ── MESSAGES ── -->
+    <div class="pg" id="pM">
+      <div class="shdr">
+        <div class="stit" id="lmsg">Messages</div>
+        <button class="btnadd" onclick="openNewChat()" id="btnNewChat">✏️ New</button>
+      </div>
+      <div class="gcard" style="padding:0;overflow:hidden">
+        <div style="padding:12px 16px;border-bottom:1px solid var(--border)">
+          <input class="finp" id="chatSearch" placeholder="Search conversations…" style="margin:0" oninput="filterChats(this.value)" />
+        </div>
+        <div id="chatList"><div class="loading"><div class="spin"></div></div></div>
+      </div>
+    </div>
+
+    <!-- ── PROFILE ── -->
+    <div class="pg" id="pP">
+      <div class="gcard prof-hero">
+        <div class="avt" id="pavt" aria-hidden="true"></div>
+        <div class="pname"   id="pnm"></div>
+        <div class="phandle" id="phnd"></div>
+        <div class="pbadge"  id="pbadge">✓ Verified</div>
+
+        <!-- Followers / Following stats -->
+        <div style="display:flex;gap:32px;margin-top:16px;margin-bottom:4px">
+          <div style="text-align:center;cursor:pointer" onclick="scrollToFollowing()">
+            <div style="font-size:1.3rem;font-weight:700;color:var(--text)" id="followingCount">0</div>
+            <div style="font-size:.72rem;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px" id="lFollowingLbl">Following</div>
+          </div>
+          <div style="width:1px;background:var(--border)"></div>
+          <div style="text-align:center">
+            <div style="font-size:1.3rem;font-weight:700;color:var(--text)" id="followersCount">0</div>
+            <div style="font-size:.72rem;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px" id="lFollowersLbl">Followers</div>
+          </div>
+        </div>
+
+        <button class="btnadd" style="margin-top:14px" onclick="openEditProfile()" id="btnEditProf">✏️ Edit Profile</button>
+      </div>
+      <div class="prefr">
+        <div class="plft">
+          <span class="pico" aria-hidden="true">🔔</span>
+          <div>
+            <div class="plbl" id="lrem">Daily Reminder</div>
+            <div class="psub" id="lrsub">Set a time to stay on track</div>
+          </div>
+        </div>
+        <button class="tog" id="rtog" onclick="toggleReminder()" aria-label="Toggle reminder"></button>
+      </div>
+      <div class="prefr" id="rtrow" style="display:none">
+        <div class="plft">
+          <span class="pico" aria-hidden="true">🕐</span>
+          <div class="plbl" id="lrt">Reminder Time</div>
+        </div>
+        <input class="tinp" type="time" id="rtime" value="21:00" onchange="saveReminderTime()" />
+      </div>
+      <button class="btn-logout" onclick="doLogout()" id="blo">Logout</button>
+      <div id="adminBtnWrap" style="display:none;margin-top:10px">
+        <button class="btn-main" onclick="openAdmin()" style="background:linear-gradient(135deg,#C8A96E,#C0614A)">
+          👑 Admin Dashboard
+        </button>
+      </div>
+
+      <!-- Following / Followers Section -->
+      <div class="gcard" id="followingSection" style="margin-top:12px;padding:0;overflow:hidden">
+        <!-- Tabs -->
+        <div style="display:flex;border-bottom:1px solid var(--border)">
+          <button id="tabFollowing" onclick="switchFollowTab('following')"
+                  style="flex:1;padding:14px;border:none;background:transparent;
+                         color:var(--accent);font-weight:700;font-size:.88rem;
+                         font-family:inherit;cursor:pointer;border-bottom:2px solid var(--accent)">
+            <span id="lFollowing">Following</span>
+            <span style="background:var(--surface2);border-radius:99px;padding:2px 8px;
+                         font-size:.72rem;margin-left:6px" id="followingCount">0</span>
+          </button>
+          <button id="tabFollowers" onclick="switchFollowTab('followers')"
+                  style="flex:1;padding:14px;border:none;background:transparent;
+                         color:var(--text2);font-weight:600;font-size:.88rem;
+                         font-family:inherit;cursor:pointer;border-bottom:2px solid transparent">
+            <span id="lFollowers">Followers</span>
+            <span style="background:var(--surface2);border-radius:99px;padding:2px 8px;
+                         font-size:.72rem;margin-left:6px" id="followersCount">0</span>
+          </button>
+        </div>
+        <!-- List -->
+        <div style="padding:4px 16px 8px" id="followingList"></div>
+      </div>
+
+    </div><!-- /pP -->
+
+  <!-- Bottom Navigation -->
+  <nav class="bnav" aria-label="Main navigation">
+    <button class="nb on" id="nH" onclick="navTo('H')" aria-label="Home">
+      <span class="ni" aria-hidden="true">⊙</span><span id="nlh">Home</span>
+    </button>
+    <button class="nb" id="nS" onclick="navTo('S')" aria-label="Stats">
+      <span class="ni" aria-hidden="true">◎</span><span id="nls">Stats</span>
+    </button>
+    <button class="nb" id="nM" onclick="navTo('M')" aria-label="Messages">
+      <span class="ni" aria-hidden="true">💬</span><span id="nlm">Messages</span>
+    </button>
+    <button class="nb" id="nP" onclick="navTo('P')" aria-label="Profile">
+      <span class="ni" aria-hidden="true">◉</span><span id="nlp">Profile</span>
+    </button>
+  </nav>
+
+</div><!-- /APP -->
+
+<!-- ═══════════════════════════════════════════
+     SCREEN: Chat
+═══════════════════════════════════════════ -->
+<div id="CS" class="scr">
+
+  <!-- Chat Topbar -->
+  <div class="chat-topbar">
+    <button class="chat-back-btn" onclick="closeChat()" aria-label="Back">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 12H5M12 5l-7 7 7 7"/>
+      </svg>
+    </button>
+    <div class="chat-header-info" onclick="scrollToTop()">
+      <div class="chat-header-avt" id="chatHeaderAvt"></div>
+      <div>
+        <div class="chat-header-name" id="chatWithName"></div>
+        <div class="chat-header-status" id="chatHeaderStatus">Online</div>
+      </div>
+    </div>
+    <div class="chat-header-actions">
+      <button class="chat-action-btn" onclick="toggleChatInfo()" aria-label="Info" id="chatInfoToggle">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="16" x2="12" y2="12"/>
+          <line x1="12" y1="8" x2="12.01" y2="8"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Chat Info Panel (collapsible) -->
+  <div class="chat-info-panel" id="chatInfoPanel" style="display:none">
+    <div class="chat-info-avt" id="chatInfoAvt"></div>
+    <div class="chat-info-name" id="chatInfoName"></div>
+    <div class="chat-info-handle" id="chatInfoHandle"></div>
+    <div class="chat-info-actions">
+      <button class="chat-info-action" onclick="toggleChatInfo()">
+        <span>✕</span>
+        <span id="lClose">Close</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Messages Area -->
+  <div class="chat-msgs" id="msgList" role="log" aria-live="polite" aria-label="Messages">
+    <!-- Date separator example structure (injected by JS) -->
+  </div>
+
+  <!-- Typing indicator -->
+  <div class="typing-bar" id="typingBar" style="display:none">
+    <div class="typing-dots">
+      <span></span><span></span><span></span>
+    </div>
+    <span class="typing-txt" id="typingTxt">typing…</span>
+  </div>
+
+  <!-- Input Bar -->
+  <div class="chat-input-bar">
+    <div class="chat-input-wrap">
+      <textarea
+        class="chat-textarea"
+        id="msgInp"
+        placeholder="Type a message…"
+        rows="1"
+        autocomplete="off"
+        onkeydown="handleMsgKey(event)"
+        oninput="autoResizeTextarea(this)"
+        aria-label="Message input"
+      ></textarea>
+    </div>
+    <button class="chat-send-btn" onclick="sendMessage()" id="sendBtn" aria-label="Send message">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="22" y1="2" x2="11" y2="13"/>
+        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+      </svg>
+    </button>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN: Admin Dashboard
+═══════════════════════════════════════════ -->
+<div id="ADM" class="scr">
+  <div class="topbar">
+    <div class="tlogo">Levi Note</div>
+    <div class="tright">
+      <div class="admin-badge">ADMIN</div>
+      <button class="pill" onclick="exitAdmin()">← Exit</button>
+    </div>
+  </div>
+  <div class="admin-wrap">
+    <div class="admin-hdr">
+      <div class="admin-title">Dashboard</div>
+      <button class="admin-refresh" onclick="loadAdmin()">⟳ Refresh</button>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-num" id="admTotal">—</div><div class="kpi-lbl">Total Users</div></div>
+      <div class="kpi"><div class="kpi-num" id="admToday">—</div><div class="kpi-lbl">Joined Today</div></div>
+      <div class="kpi"><div class="kpi-num" id="admGoogle">—</div><div class="kpi-lbl">Google</div></div>
+      <div class="kpi"><div class="kpi-num" id="admEmail">—</div><div class="kpi-lbl">Email</div></div>
+    </div>
+    <div class="gcard">
+      <div class="ctit">All Users</div>
+      <div id="admList"><div class="loading"><div class="spin"></div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     MODALS
+═══════════════════════════════════════════ -->
+
+<!-- Add Habit -->
+<div class="ovl" id="AM" role="dialog" aria-modal="true" aria-labelledby="mat">
+  <div class="modal">
+    <div class="mtit" id="mat">New Habit</div>
+    <div class="fld">
+      <label class="flbl" for="hinp" id="mal">Habit Name</label>
+      <input class="finp" id="hinp" type="text" placeholder="e.g. Morning Run" maxlength="60" />
+    </div>
+    <div class="macts">
+      <button class="bcnc" onclick="closeModal('AM')" id="mac">Cancel</button>
+      <button class="bok"  onclick="saveHabit()"      id="mas">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Diary -->
+<div class="ovl" id="DM" role="dialog" aria-modal="true" aria-labelledby="mdt">
+  <div class="modal">
+    <div class="mtit" id="mdt">Habit Diary</div>
+    <div class="fld">
+      <label class="flbl" for="dinp" id="mdl">Today's Note</label>
+      <textarea class="dtxt" id="dinp" placeholder="How did it go today?" maxlength="500"></textarea>
+    </div>
+    <div class="macts">
+      <button class="bcnc" onclick="closeModal('DM')" id="mdc">Cancel</button>
+      <button class="bok"  onclick="saveDiary()"      id="mds">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Profile -->
+<div class="ovl" id="EPM" role="dialog" aria-modal="true" aria-labelledby="epTitle">
+  <div class="modal">
+    <div class="mtit" id="epTitle">Edit Profile</div>
+    <div class="edit-avt" id="editAvt" onclick="$('avatFile').click()" role="button" aria-label="Change avatar">
+      <div class="edit-avt-ov" aria-hidden="true">📷</div>
+    </div>
+    <input type="file" id="avatFile" accept="image/*" style="display:none" onchange="handleAvatarChange(this)" />
+    <div class="fld">
+      <label class="flbl" for="epU" id="epLbU">Username</label>
+      <input class="finp" id="epU" type="text" autocomplete="off" oninput="liveCheckUsername(this,'epUchk',true)" />
+      <div class="ucheck" id="epUchk" role="status"></div>
+    </div>
+    <div class="fld">
+      <label class="flbl" for="epN" id="epLbN">Display Name</label>
+      <input class="finp" id="epN" type="text" maxlength="40" />
+    </div>
+    <div class="macts">
+      <button class="bcnc" onclick="closeModal('EPM')" id="epCancel">Cancel</button>
+      <button class="bok"  onclick="saveEditProfile()" id="epSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- New Chat -->
+<div class="ovl" id="NCM" role="dialog" aria-modal="true" aria-labelledby="ncTitle">
+  <div class="modal">
+    <div class="mtit" id="ncTitle">New Message</div>
+    <div class="fld">
+      <label class="flbl">Search by username</label>
+      <input class="finp" id="ncSearch" type="text" placeholder="@username" autocomplete="off" oninput="searchUsers(this.value)" />
+    </div>
+    <div id="ncResults" style="max-height:200px;overflow-y:auto;margin-top:8px"></div>
+    <div class="macts">
+      <button class="bcnc" onclick="closeModal('NCM')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     FIREBASE + APPLICATION LOGIC
+═══════════════════════════════════════════ -->
+<script type="module">
+'use strict';
+
+/* ─── Firebase Imports ─────────────────────────────────────── */
+import { initializeApp }                                    from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js';
+import {
+  getAuth, GoogleAuthProvider, signInWithPopup,
+  createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  sendEmailVerification, sendPasswordResetEmail,
+  onAuthStateChanged, signOut, reload,
+  browserLocalPersistence, setPersistence
+} from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js';
+import {
+  getFirestore, doc, getDoc, setDoc, addDoc,
+  updateDoc, collection, query, where, orderBy,
+  limit, onSnapshot, getDocs, serverTimestamp
+} from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
+
+/* ─── Config ───────────────────────────────────────────────── */
+const FB_CONFIG = {
+  apiKey           : 'AIzaSyDtCSvEAAT2bi9Z9a1wmm_33iPzMgNOsCs',
+  authDomain       : 'website-login-levinote.firebaseapp.com',
+  projectId        : 'website-login-levinote',
+  storageBucket    : 'website-login-levinote.firebasestorage.app',
+  messagingSenderId: '319518261140',
+  appId            : '1:319518261140:web:df30e5e25b3fb7ec281981',
+};
+
+const fbApp = initializeApp(FB_CONFIG);
+const auth  = getAuth(fbApp);
+const db    = getFirestore(fbApp);
+
+/* Enable session persistence across page reloads */
+setPersistence(auth, browserLocalPersistence).catch(() => {});
+
+/* ─── Constants ────────────────────────────────────────────── */
+const ADMIN_EMAILS = ['sas235sa@gmail.com', 'sas237sa@gmail.com'];
+const SCREENS      = ['AS','RS','FP','VS','US','APP','ADM','CS'];
+
+/* ─── App State ────────────────────────────────────────────── */
+let LANG        = 'en';
+let DARK        = true;
+let UDATA       = defaultUserData();
+let DIARY_HABIT = null;
+let NEW_AVATAR  = null;
+
+/* Active Firestore listeners */
+let unsubUser   = null;
+let unsubMsgs   = null;
+let unsubChats  = null;
+
+/* Username debounce timers */
+let usernameTimer     = null;
+let usernameTimerEdit = null;
+
+/* ─── Translations ─────────────────────────────────────────── */
+const TX = {
+  en: {
+    tag:'Track your habits. Build your life.',
+    goog:'Continue with Google', or:'or continue with email',
+    l:'Login', r:'Register', em:'Email', pw:'Password', cr:'Create Account',
+    ah:'＋ Add', nh:'New Habit', hn:'Habit Name', cn:'Cancel', sv:'Save',
+    di:'Habit Diary', tn:"Today's Note", hg:'How did it go today?',
+    mh:'My Habits', tod:'Today', wk:'Week', mo:'Month',
+    tm:'This Month', lm:'Last Month', st:'Streaks 🔥',
+    rem:'Daily Reminder', rs:'Set a time to stay on track', rt:'Reminder Time',
+    lo:'Logout', nlh:'Home', nls:'Stats', nlm:'Messages', nlp:'Profile',
+    sk:' day streak', pct:' this month',
+    nh0:'No habits yet', af:'Tap "＋ Add" to get started.',
+    verified:'✓ Verified',
+    vtit:'Check your email', vsub:'We sent a verification link to',
+    vcheck:"I've verified my email", vresend:'Resend email', vback:'Back to login',
+    lg:'🇸🇦 AR', lt:'☀️', dk:'🌙',
+    noAcc:"Don't have an account?", goReg:'Create account',
+    hasAcc:'Already have an account?', goLog:'Login',
+    forgot:'Forgot password?', backLog:'← Back to Login', sendReset:'Send Reset Link',
+    fpTag:'Reset your password', regTag:'Create your account',
+    msgEmpty:'No conversations yet.\nPress ✏️ New to start one.',
+    sayHi:'Say hello! 👋',
+  },
+  ar: {
+    tag:'تتبع عاداتك. ابنِ حياتك.',
+    goog:'المتابعة عبر Google', or:'أو عبر الإيميل',
+    l:'دخول', r:'تسجيل', em:'البريد الإلكتروني', pw:'كلمة السر', cr:'إنشاء حساب',
+    ah:'＋ أضف', nh:'عادة جديدة', hn:'اسم العادة', cn:'إلغاء', sv:'حفظ',
+    di:'يومية العادة', tn:'ملاحظة اليوم', hg:'كيف سارت الأمور؟',
+    mh:'عاداتي', tod:'اليوم', wk:'الأسبوع', mo:'الشهر',
+    tm:'هذا الشهر', lm:'الشهر الماضي', st:'السلاسل 🔥',
+    rem:'تذكير يومي', rs:'حدد وقتاً لتتبع عاداتك', rt:'وقت التذكير',
+    lo:'تسجيل الخروج', nlh:'الرئيسية', nls:'إحصائيات', nlm:'الرسائل', nlp:'الملف',
+    sk:' يوم متتالي', pct:' هذا الشهر',
+    nh0:'لا توجد عادات بعد', af:'اضغط "＋ أضف" للبدء.',
+    verified:'✓ موثق',
+    vtit:'تحقق من بريدك', vsub:'أرسلنا رابط التحقق إلى',
+    vcheck:'لقد تحققت من بريدي', vresend:'إعادة الإرسال', vback:'رجوع لتسجيل الدخول',
+    lg:'🇬🇧 EN', lt:'☀️', dk:'🌙',
+    noAcc:'ما عندك حساب؟', goReg:'إنشاء حساب',
+    hasAcc:'عندك حساب؟', goLog:'دخول',
+    forgot:'نسيت كلمة المرور؟', backLog:'← رجوع لتسجيل الدخول', sendReset:'إرسال رابط الاستعادة',
+    fpTag:'استعادة كلمة المرور', regTag:'إنشاء حساب جديد',
+    msgEmpty:'لا توجد محادثات.\nاضغط ✏️ جديد للبدء.',
+    sayHi:'قل مرحباً! 👋',
+  },
+};
+const t = k => TX[LANG][k] ?? k;
+
+/* ─── Quotes ───────────────────────────────────────────────── */
+const QUOTES = {
+  en: [
+    { q:"We are what we repeatedly do. Excellence is not an act, but a habit.", a:"Aristotle" },
+    { q:"Small daily improvements lead to stunning results over time.",           a:"Robin Sharma" },
+    { q:"Motivation gets you started. Habit keeps you going.",                   a:"Jim Ryun" },
+    { q:"The secret of your future is hidden in your daily routine.",            a:"Mike Murdock" },
+    { q:"You don't rise to your goals. You fall to your systems.",               a:"James Clear" },
+    { q:"Discipline is choosing what you want most over what you want now.",     a:"Augusta F. Kantra" },
+    { q:"Success is the sum of small efforts repeated day in and day out.",      a:"Robert Collier" },
+  ],
+  ar: [
+    { q:"نحن ما نفعله بشكل متكرر. التميز إذن ليس فعلاً بل عادة.",                   a:"أرسطو" },
+    { q:"التحسينات اليومية الصغيرة تؤدي مع الوقت إلى نتائج مذهلة.",                a:"روبن شارما" },
+    { q:"الدافع يجعلك تبدأ، والعادة هي ما يجعلك تستمر.",                          a:"جيم ريون" },
+    { q:"سر مستقبلك مخبأ في روتينك اليومي.",                                       a:"مايك ميردوك" },
+    { q:"أنت لا ترتقي إلى مستوى أهدافك، بل تنزل إلى مستوى أنظمتك.",               a:"جيمس كلير" },
+    { q:"الانضباط هو الاختيار بين ما تريده الآن وما تريده أكثر.",                  a:"أوغستا كانترا" },
+    { q:"النجاح هو مجموع الجهود الصغيرة المتكررة يوماً بعد يوم.",                  a:"روبرت كولير" },
+  ],
+};
+
+/* ═══════════════════════════════════════════════════
+   UTILITIES
+═══════════════════════════════════════════════════ */
+
+/** Shorthand getElementById */
+const $ = id => document.getElementById(id);
+
+/** Zero-pad number to 2 digits */
+const pad2 = n => String(n).padStart(2, '0');
+
+/** Today's key: YYYY-MM-DD */
+const todayKey = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+};
+
+/** Format ISO string to HH:MM */
+const fmtTime = iso => iso ? new Date(iso).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }) : '';
+
+/** Escape HTML to prevent XSS */
+const esc = str => String(str)
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+  .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+
+/** Default user data structure */
+function defaultUserData() {
+  return { habits:[], logs:{}, diaries:{}, reminder:false, remTime:'21:00' };
+}
+
+/** Show one screen, hide all others */
+function showScreen(id) {
+  SCREENS.forEach(s => { const el = $(s); if (el) el.classList.remove('on'); });
+  const el = $(id);
+  if (el) el.classList.add('on');
+}
+window.showScreen = showScreen;
+
+/** Show/hide inline error */
+function showErr(boxId, msg) {
+  const el = $(boxId);
+  el.textContent = msg;
+  el.classList.add('on');
+}
+function hideErr(boxId) { $(boxId).classList.remove('on'); }
+
+/** Open / close overlay modals */
+function openModal(id)  { $(id).classList.add('on'); }
+function closeModal(id) { $(id).classList.remove('on'); }
+window.closeModal = closeModal;
+
+/* Close modals on backdrop click */
+document.querySelectorAll('.ovl').forEach(el =>
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('on'); })
+);
+
+/* ═══════════════════════════════════════════════════
+   FIRESTORE HELPERS
+═══════════════════════════════════════════════════ */
+
+/** Load user document and subscribe to live updates */
+async function loadUserDoc(uid) {
+  const ref  = doc(db, 'users', uid);
+  const snap = await getDoc(ref);
+
+  if (snap.exists()) {
+    UDATA = { ...defaultUserData(), ...snap.data() };
+  } else {
+    await setDoc(ref, defaultUserData());
+  }
+
+  /* Auto-save metadata on every login */
+  const user = auth.currentUser;
+  if (user) {
+    const meta = {
+      email    : user.email ?? '',
+      uid      : user.uid,
+      lastLogin: new Date().toISOString().slice(0,16).replace('T',' '),
+      createdAt: UDATA.createdAt ?? new Date().toISOString().slice(0,10),
+    };
+    await setDoc(ref, meta, { merge: true });
+    Object.assign(UDATA, meta);
+  }
+
+  /* Live listener */
+  if (unsubUser) unsubUser();
+  unsubUser = onSnapshot(ref, snap => {
+    if (!snap.exists()) return;
+    UDATA = { ...UDATA, ...snap.data() };
+    renderHome();
+    if ($('pS').classList.contains('on')) renderStats();
+  });
+}
+
+/** Persist UDATA to Firestore */
+async function saveUserData() {
+  const user = auth.currentUser;
+  if (!user) return;
+  await setDoc(doc(db, 'users', user.uid), UDATA, { merge: true });
+}
+
+/* ═══════════════════════════════════════════════════
+   AUTHENTICATION
+═══════════════════════════════════════════════════ */
+
+window.loginGoogle = async () => {
+  try {
+    const provider = new GoogleAuthProvider();
+    const result   = await signInWithPopup(auth, provider);
+    await loadUserDoc(result.user.uid);
+    if (!UDATA.provider) {
+      UDATA.provider  = 'google';
+      UDATA.createdAt = UDATA.createdAt ?? new Date().toISOString().slice(0,10);
+      await saveUserData();
+    }
+    enterApp(result.user);
+  } catch (e) {
+    showErr('aerr', friendlyAuthError(e.code));
+  }
+};
+
+window.doLogin = async () => {
+  const email    = $('le').value.trim();
+  const password = $('lp').value;
+  if (!email || !password) { showErr('aerr','Please fill all fields.'); return; }
+  hideErr('aerr');
+  $('btnl').disabled = true;
+  try {
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    if (!result.user.emailVerified) {
+      $('vemail').textContent = email;
+      showScreen('VS');
+    } else {
+      await loadUserDoc(result.user.uid);
+      enterApp(result.user);
+    }
+  } catch (e) {
+    showErr('aerr', friendlyAuthError(e.code));
+  } finally {
+    $('btnl').disabled = false;
+  }
+};
+
+window.doRegister = async () => {
+  const email    = $('re').value.trim();
+  const password = $('rp').value;
+  if (!email || !password)  { showErr('rerr','Please fill all fields.'); return; }
+  if (password.length < 8)  { showErr('rerr','Password must be at least 8 characters.'); return; }
+  hideErr('rerr');
+  $('btnr').disabled = true;
+  try {
+    const result = await createUserWithEmailAndPassword(auth, email, password);
+    await sendEmailVerification(result.user);
+    await setDoc(doc(db,'users',result.user.uid), {
+      ...defaultUserData(),
+      provider  : 'email',
+      email     : email,
+      uid       : result.user.uid,
+      createdAt : new Date().toISOString().slice(0,10),
+    });
+    $('vemail').textContent = email;
+    showScreen('VS');
+  } catch (e) {
+    showErr('rerr', friendlyAuthError(e.code));
+  } finally {
+    $('btnr').disabled = false;
+  }
+};
+
+window.checkVerify = async () => {
+  const user = auth.currentUser;
+  if (!user) { showScreen('AS'); return; }
+  await reload(user);
+  if (user.emailVerified) {
+    await loadUserDoc(user.uid);
+    enterApp(user);
+  } else {
+    // Show error near the verify button, not aerr which is on login screen
+    alert('Email not verified yet. Please check your inbox.');
+  }
+};
+
+window.resendVerify = async () => {
+  const user = auth.currentUser;
+  if (user) await sendEmailVerification(user);
+};
+
+window.doLogout = async () => {
+  if (unsubUser)  { unsubUser();  unsubUser  = null; }
+  if (unsubMsgs)  { unsubMsgs();  unsubMsgs  = null; }
+  if (unsubChats) { unsubChats(); unsubChats = null; }
+  await signOut(auth);
+  UDATA = defaultUserData();
+  showScreen('AS');
+};
+
+window.showForgot = () => { $('fpe').value = ''; hideErr('fperr'); $('fpsuk').classList.remove('on'); showScreen('FP'); };
+
+window.doReset = async () => {
+  const email = $('fpe').value.trim();
+  if (!email) { showErr('fperr','Please enter your email.'); return; }
+  try {
+    await sendPasswordResetEmail(auth, email);
+    $('fpsuk').textContent = 'Reset link sent! Check your inbox. 📧';
+    $('fpsuk').classList.add('on');
+    hideErr('fperr');
+  } catch (e) {
+    showErr('fperr', friendlyAuthError(e.code));
+  }
+};
+
+/** Convert Firebase error codes to human-readable messages */
+function friendlyAuthError(code) {
+  const map = {
+    'auth/invalid-credential'      : 'Incorrect email or password.',
+    'auth/user-not-found'          : 'No account found with this email.',
+    'auth/wrong-password'          : 'Incorrect password.',
+    'auth/email-already-in-use'    : 'This email is already registered.',
+    'auth/weak-password'           : 'Password is too weak.',
+    'auth/invalid-email'           : 'Invalid email address.',
+    'auth/too-many-requests'       : 'Too many attempts. Please try again later.',
+    'auth/network-request-failed'  : 'Network error. Check your connection.',
+    'auth/popup-closed-by-user'    : 'Sign-in was cancelled.',
+  };
+  return map[code] ?? 'Something went wrong. Please try again.';
+}
+
+/* ─── Auth State Listener ──────────────────────────────────── */
+onAuthStateChanged(auth, async user => {
+  if (user && user.emailVerified) {
+    await loadUserDoc(user.uid);
+    enterApp(user);
+  } else if (user && !user.emailVerified) {
+    $('vemail').textContent = user.email;
+    showScreen('VS');
+  } else {
+    showScreen('AS');
+  }
+});
+
+/* ─── Enter App ────────────────────────────────────────────── */
+function enterApp(user) {
+  if (!UDATA.username) {
+    showScreen('US');
+    return;
+  }
+  showScreen('APP');
+  navTo('H');
+  applyTranslations();
+  renderHome();
+  renderProfile(user);
+}
+
+/* ═══════════════════════════════════════════════════
+   THEME & LANGUAGE
+═══════════════════════════════════════════════════ */
+
+window.toggleTheme = () => {
+  DARK = !DARK;
+  document.body.classList.toggle('lm', !DARK);
+  $('tpill').textContent = DARK ? t('lt') : t('dk');
+};
+
+window.toggleLang = () => {
+  LANG = LANG === 'en' ? 'ar' : 'en';
+  document.body.classList.toggle('ar', LANG === 'ar');
+  document.documentElement.lang = LANG;
+  document.documentElement.dir  = LANG === 'ar' ? 'rtl' : 'ltr';
+  applyTranslations();
+  renderHome();
+};
+
+function applyTranslations() {
+  const set = (id, val) => { const el = $(id); if (el) el.textContent = val; };
+  const ph  = (id, val) => { const el = $(id); if (el) el.placeholder  = val; };
+
+  /* Auth */
+  set('btag',        t('tag'));   set('btnGTxt',  t('goog')); set('divTxt',    t('or'));
+  // ta/tb removed in new auth design (separate screens)
+  // set('ta', t('l')); set('tb', t('r'));
+  set('lbe',         t('em'));    set('lbp',       t('pw'));   set('btnl',      t('l'));
+  set('lbre',        t('em'));    set('lbrp',      t('pw'));   set('btnr',      t('cr'));
+  set('noAccTxt',    t('noAcc')); set('btnGoReg',  t('goReg'));
+  set('hasAccTxt',   t('hasAcc'));set('btnGoLogin',t('goLog'));
+  set('btnForgot',   t('forgot'));set('btnBackLogin',t('backLog')); set('btnReset', t('sendReset'));
+  set('fpTag',       t('fpTag')); set('regTag',    t('regTag'));
+  set('btnVCheck',   t('vcheck'));set('btnResend', t('vresend'));   set('btnVBack', t('vback'));
+
+  /* Pillbuttons */
+  set('lpill', t('lg'));
+  set('tpill', DARK ? t('lt') : t('dk'));
+
+  /* Home */
+  set('ltod',  t('tod')); set('lwk', t('wk')); set('lmo', t('mo'));
+  set('lhab',  t('mh'));  set('badd',t('ah'));
+
+  /* Modals */
+  set('mat', t('nh'));  set('mal', t('hn')); set('mac', t('cn')); set('mas', t('sv'));
+  set('mdt', t('di'));  set('mdl', t('tn')); set('mdc', t('cn')); set('mds', t('sv'));
+  ph ('dinp', t('hg'));
+
+  /* Stats */
+  set('cth', t('tm')); set('cla', t('lm')); set('cst', t('st'));
+
+  /* Messages */
+  set('nlm', t('nlm'));
+  ph ('chatSearch', LANG === 'ar' ? 'ابحث في المحادثات…' : 'Search conversations…');
+
+  /* Profile */
+  set('btnEditProf', LANG === 'ar' ? '✏️ تعديل الملف' : '✏️ Edit Profile');
+  set('lrem',  t('rem'));  set('lrsub', t('rs')); set('lrt', t('rt'));
+  set('blo',   t('lo'));   set('pbadge',t('verified'));
+
+  set('lFollowing',    LANG === 'ar' ? 'المتابَعون' : 'Following');
+  set('lFollowers',    LANG === 'ar' ? 'المتابِعون' : 'Followers');
+  set('lFollowingLbl', LANG === 'ar' ? 'المتابَعون' : 'Following');
+  set('lFollowersLbl', LANG === 'ar' ? 'المتابِعون' : 'Followers');
+
+  /* Nav */
+  set('nlh', t('nlh')); set('nls', t('nls')); set('nlp', t('nlp'));
+}
+
+/* ═══════════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════════ */
+
+window.navTo = n => {
+  ['H','S','M','P'].forEach(x => {
+    $('p'+x)?.classList.toggle('on', x === n);
+    $('n'+x)?.classList.toggle('on', x === n);
+  });
+  if (n === 'S') renderStats();
+  if (n === 'M') loadChats();
+  if (n === 'P') { renderProfile(auth.currentUser); }
+};
+
+/* ═══════════════════════════════════════════════════
+   USERNAME VALIDATION
+═══════════════════════════════════════════════════ */
+
+function isValidUsername(u) {
+  if (!u || u.length < 2 || u.length > 33) return false;
+  if (!/^[a-zA-Z0-9_.]+$/.test(u))          return false;
+  if (u.startsWith('.') || u.endsWith('.'))  return false;
+  if (u.includes('..'))                      return false;
+  return true;
+}
+
+async function isUsernameTaken(username, excludeOwn = false) {
+  if (excludeOwn && username.toLowerCase() === UDATA.username?.toLowerCase()) return false;
+  try {
+    const q    = query(collection(db,'users'), where('username','==',username.toLowerCase()), limit(1));
+    const snap = await getDocs(q);
+    return !snap.empty;
+  } catch { return false; }
+}
+
+/** Live username check with debounce */
+window.liveCheckUsername = (inp, statusId, isEdit = false) => {
+  const u  = inp.value.trim().replace(/^@/,'');
+  const el = $(statusId);
+  if (!u) { el.textContent = ''; el.className = 'ucheck'; return; }
+  if (!isValidUsername(u)) { el.textContent = '❌ Invalid format'; el.className = 'ucheck err'; return; }
+  if (isEdit && u.toLowerCase() === UDATA.username?.toLowerCase()) {
+    el.textContent = '✓ Your current username'; el.className = 'ucheck ok'; return;
+  }
+  el.textContent = '⏳ Checking…'; el.className = 'ucheck chk';
+  clearTimeout(isEdit ? usernameTimerEdit : usernameTimer);
+  const timer = setTimeout(async () => {
+    const taken = await isUsernameTaken(u, isEdit);
+    el.textContent = taken ? '❌ Already taken' : '✓ Available';
+    el.className   = taken ? 'ucheck err' : 'ucheck ok';
+  }, 600);
+  if (isEdit) usernameTimerEdit = timer; else usernameTimer = timer;
+};
+
+/* ─── Save Setup ───────────────────────────────────────────── */
+window.saveSetup = async () => {
+  const u = $('su').value.trim().replace(/^@/,'');
+  const n = $('sn').value.trim();
+  hideErr('serr');
+  if (!isValidUsername(u)) { showErr('serr','Invalid username format.'); return; }
+  if (!n)                   { showErr('serr','Please enter a display name.'); return; }
+  if (n.length > 40)        { showErr('serr','Display name is too long (max 40 chars).'); return; }
+  if (await isUsernameTaken(u)) { showErr('serr','Username already taken.'); return; }
+  $('btnSetup').disabled = true;
+  UDATA.username    = u.toLowerCase();
+  UDATA.displayName = n;
+  await saveUserData();
+  enterApp(auth.currentUser);
+  $('btnSetup').disabled = false;
+};
+
+/* ─── Edit Profile ─────────────────────────────────────────── */
+window.openEditProfile = () => {
+  $('epU').value = UDATA.username   ?? '';
+  $('epN').value = UDATA.displayName ?? '';
+  $('epUchk').textContent = ''; $('epUchk').className = 'ucheck';
+  NEW_AVATAR = null;
+  const ea = $('editAvt');
+  if (UDATA.avatarBase64) {
+    ea.innerHTML = `<img src="${UDATA.avatarBase64}" alt="Avatar"><div class="edit-avt-ov" aria-hidden="true">📷</div>`;
+  } else {
+    const name = UDATA.displayName ?? auth.currentUser?.email ?? '?';
+    ea.innerHTML = `${esc(name[0]).toUpperCase()}<div class="edit-avt-ov" aria-hidden="true">📷</div>`;
+  }
+  openModal('EPM');
+};
+
+window.handleAvatarChange = inp => {
+  const file = inp.files[0];
+  if (!file) return;
+  /* Validate image size (max 2MB) */
+  if (file.size > 2 * 1024 * 1024) { alert('Image must be smaller than 2MB.'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    NEW_AVATAR = e.target.result;
+    $('editAvt').innerHTML = `<img src="${NEW_AVATAR}" alt="Avatar"><div class="edit-avt-ov" aria-hidden="true">📷</div>`;
+  };
+  reader.readAsDataURL(file);
+};
+
+window.saveEditProfile = async () => {
+  const u = $('epU').value.trim().replace(/^@/,'');
+  const n = $('epN').value.trim();
+  const errEl = $('epUchk');
+  if (!isValidUsername(u)) {
+    errEl.textContent = '❌ Invalid username format';
+    errEl.className = 'ucheck err';
+    return;
+  }
+  if (!n) {
+    errEl.textContent = '❌ Please enter a display name';
+    errEl.className = 'ucheck err';
+    return;
+  }
+  if (u.toLowerCase() !== UDATA.username?.toLowerCase() && await isUsernameTaken(u)) {
+    errEl.textContent = '❌ Username already taken';
+    errEl.className = 'ucheck err';
+    return;
+  }
+  $('epSave').disabled = true;
+  UDATA.username     = u.toLowerCase();
+  UDATA.displayName  = n;
+  if (NEW_AVATAR) UDATA.avatarBase64 = NEW_AVATAR;
+  await saveUserData();
+  closeModal('EPM');
+  renderProfile(auth.currentUser);
+  $('epSave').disabled = false;
+};
+
+/* ═══════════════════════════════════════════════════
+   STATS CALCULATIONS
+═══════════════════════════════════════════════════ */
+
+/** Current streak for a habit (consecutive days from today backwards) */
+function calcStreak(habitId) {
+  let streak = 0;
+  const d = new Date();
+  while (true) {
+    const key = `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+    if (UDATA.logs?.[key]?.[habitId]) { streak++; d.setDate(d.getDate()-1); }
+    else break;
+  }
+  return streak;
+}
+
+/** Completion % for a habit in a given month offset (0=this, -1=last) */
+function calcMonthPct(habitId, offset = 0) {
+  const d   = new Date();
+  d.setMonth(d.getMonth() + offset);
+  const yr  = d.getFullYear();
+  const mo  = d.getMonth();
+  const dim = new Date(yr, mo+1, 0).getDate();
+  const max = offset === 0 ? new Date().getDate() : dim;
+  let done  = 0;
+  for (let i = 1; i <= max; i++) {
+    const key = `${yr}-${pad2(mo+1)}-${pad2(i)}`;
+    if (UDATA.logs?.[key]?.[habitId]) done++;
+  }
+  return max > 0 ? Math.round(done / max * 100) : 0;
+}
+
+/** Today's overall completion % */
+function calcTodayPct() {
+  const habits = UDATA.habits ?? [];
+  if (!habits.length) return 0;
+  const key  = todayKey();
+  const done = habits.filter(h => UDATA.logs?.[key]?.[h.id]).length;
+  return Math.round(done / habits.length * 100);
+}
+
+/** Last 7 days overall completion % */
+function calcWeekPct() {
+  const habits = UDATA.habits ?? [];
+  if (!habits.length) return 0;
+  let total = 0, done = 0;
+  for (let i = 0; i < 7; i++) {
+    const d   = new Date();
+    d.setDate(d.getDate() - i);
+    const key = `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+    habits.forEach(h => { total++; if (UDATA.logs?.[key]?.[h.id]) done++; });
+  }
+  return total > 0 ? Math.round(done / total * 100) : 0;
+}
+
+/** Average monthly % across all habits */
+function calcMonthAvgPct() {
+  const habits = UDATA.habits ?? [];
+  if (!habits.length) return 0;
+  return Math.round(habits.reduce((s, h) => s + calcMonthPct(h.id), 0) / habits.length);
+}
+
+/* ═══════════════════════════════════════════════════
+   RENDER — HOME
+═══════════════════════════════════════════════════ */
+
+function renderHome() {
+  /* Daily quote */
+  const quotes = QUOTES[LANG];
+  const quote  = quotes[new Date().getDate() % quotes.length];
+  $('qt').textContent = quote.q;
+  $('qa').textContent = `— ${quote.a}`;
+
+  /* Stats tiles */
+  $('st').textContent = calcTodayPct()    + '%';
+  $('sw').textContent = calcWeekPct()     + '%';
+  $('sm').textContent = calcMonthAvgPct() + '%';
+
+  /* Habits list */
+  const habits  = UDATA.habits ?? [];
+  const list    = $('HL');
+  const today   = todayKey();
+
+  if (!habits.length) {
+    list.innerHTML = `
+      <div class="empty">
+        <div class="eico" aria-hidden="true">✦</div>
+        <div class="etxt"><b>${esc(t('nh0'))}</b><br>${esc(t('af'))}</div>
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = habits.map(h => {
+    const done = !!UDATA.logs?.[today]?.[h.id];
+    const str  = calcStreak(h.id);
+    const pct  = calcMonthPct(h.id);
+    return `
+      <div class="hcard${done ? ' dk' : ''}" role="listitem">
+        <button class="hchk${done ? ' ok' : ''}" onclick="toggleHabit('${esc(h.id)}')"
+                aria-label="${done ? 'Mark incomplete' : 'Mark complete'}: ${esc(h.name)}">
+          ${done ? '✓' : ''}
+        </button>
+        <div class="hbody">
+          <div class="hname">${esc(h.name)}</div>
+          <div class="hmeta">
+            <span class="hstr">🔥 ${str}${t('sk')}</span>
+            <span class="hpct">${pct}%${t('pct')}</span>
+          </div>
+          <div class="pbar"><div class="pfill" style="width:${pct}%"></div></div>
+        </div>
+        <div class="hacts">
+          <button class="hbtn" onclick="openDiary('${esc(h.id)}')" aria-label="Open diary for ${esc(h.name)}">📓</button>
+          <button class="hbtn del" onclick="deleteHabit('${esc(h.id)}')" aria-label="Delete ${esc(h.name)}">✕</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════
+   HABITS CRUD
+═══════════════════════════════════════════════════ */
+
+window.openAddHabit = () => { $('hinp').value = ''; openModal('AM'); };
+
+window.saveHabit = async () => {
+  const name = $('hinp').value.trim();
+  if (!name || name.length > 60) return;
+  UDATA.habits = UDATA.habits ?? [];
+  UDATA.habits.push({ id: `h${Date.now()}`, name, createdAt: todayKey() });
+  await saveUserData();
+  closeModal('AM');
+  renderHome();
+};
+
+window.deleteHabit = async habitId => {
+  const habit = (UDATA.habits ?? []).find(h => h.id === habitId);
+  if (!habit) return;
+  // Use native confirm as fallback (no custom modal needed for simple delete)
+  if (!window.confirm(`Delete "${habit.name}"?`)) return;
+  UDATA.habits = UDATA.habits.filter(h => h.id !== habitId);
+  // Also clean up logs and diaries for deleted habit
+  Object.keys(UDATA.logs ?? {}).forEach(day => { delete UDATA.logs[day][habitId]; });
+  Object.keys(UDATA.diaries ?? {}).forEach(day => { delete UDATA.diaries[day][habitId]; });
+  await saveUserData();
+  renderHome();
+};
+
+window.toggleHabit = async habitId => {
+  const key    = todayKey();
+  UDATA.logs   = UDATA.logs ?? {};
+  UDATA.logs[key] = UDATA.logs[key] ?? {};
+  UDATA.logs[key][habitId] = !UDATA.logs[key][habitId];
+  await saveUserData();
+  renderHome();
+};
+
+window.openDiary = habitId => {
+  DIARY_HABIT = habitId;
+  const key   = todayKey();
+  $('dinp').value = UDATA.diaries?.[key]?.[habitId] ?? '';
+  openModal('DM');
+};
+
+window.saveDiary = async () => {
+  const key   = todayKey();
+  UDATA.diaries = UDATA.diaries ?? {};
+  UDATA.diaries[key] = UDATA.diaries[key] ?? {};
+  UDATA.diaries[key][DIARY_HABIT] = $('dinp').value.trim();
+  await saveUserData();
+  closeModal('DM');
+};
+
+/* ═══════════════════════════════════════════════════
+   RENDER — STATS
+═══════════════════════════════════════════════════ */
+
+function renderStats() {
+  const habits  = UDATA.habits ?? [];
+  const noData  = `<p style="color:var(--text3);font-size:.84rem">${t('nh0')}</p>`;
+
+  const makeMonthRows = offset => habits.length
+    ? habits.map(h => {
+        const pct = calcMonthPct(h.id, offset);
+        return `<div class="srow">
+          <div class="srn">${esc(h.name)}</div>
+          <div class="srb"><div class="srf" style="width:${pct}%"></div></div>
+          <div class="srp">${pct}%</div>
+        </div>`;
+      }).join('')
+    : noData;
+
+  $('sth').innerHTML = makeMonthRows(0);
+  $('sla').innerHTML = makeMonthRows(-1);
+
+  $('sst').innerHTML = habits.length
+    ? habits.map(h => `
+        <div class="strw">
+          <div class="strnm">${esc(h.name)}</div>
+          <div class="strv">🔥 ${calcStreak(h.id)}</div>
+        </div>`).join('')
+    : noData;
+}
+
+/* ═══════════════════════════════════════════════════
+   RENDER — PROFILE
+═══════════════════════════════════════════════════ */
+
+function renderProfile(user) {
+  if (!user) return;
+  const pavt = $('pavt');
+  if (UDATA.avatarBase64) {
+    pavt.innerHTML = `<img src="${UDATA.avatarBase64}" alt="Avatar">`;
+  } else if (user.photoURL) {
+    pavt.innerHTML = `<img src="${esc(user.photoURL)}" alt="Avatar">`;
+  } else {
+    const initial = (UDATA.displayName ?? user.email ?? '?')[0].toUpperCase();
+    pavt.textContent = initial;
+  }
+  $('pnm').textContent   = UDATA.displayName ?? user.email?.split('@')[0] ?? 'User';
+  $('phnd').textContent  = UDATA.username ? `@${UDATA.username}` : user.email ?? '';
+  $('rtog').className    = 'tog' + (UDATA.reminder ? ' on' : '');
+  $('rtrow').style.display = UDATA.reminder ? 'flex' : 'none';
+  $('rtime').value       = UDATA.remTime ?? '21:00';
+  $('adminBtnWrap').style.display = isAdmin(user) ? 'block' : 'none';
+  /* Render following list */
+  renderFollowing();
+}
+
+window.toggleReminder = async () => {
+  UDATA.reminder = !UDATA.reminder;
+  await saveUserData();
+  renderProfile(auth.currentUser);
+};
+
+window.saveReminderTime = async () => {
+  UDATA.remTime = $('rtime').value;
+  await saveUserData();
+};
+
+/* ═══════════════════════════════════════════════════
+   ADMIN DASHBOARD
+═══════════════════════════════════════════════════ */
+
+const isAdmin = user => user && ADMIN_EMAILS.includes(user.email?.toLowerCase());
+
+window.openAdmin = async () => {
+  showScreen('ADM');
+  await loadAdmin();
+};
+
+window.exitAdmin = () => {
+  showScreen('APP');
+  navTo('P');
+};
+
+window.loadAdmin = async () => {
+  $('admList').innerHTML = '<div class="loading"><div class="spin"></div></div>';
+  try {
+    const snap  = await getDocs(collection(db, 'users'));
+    const users = [];
+    snap.forEach(d => users.push({ id: d.id, ...d.data() }));
+
+    const todayStr = new Date().toISOString().slice(0,10);
+    $('admTotal').textContent  = users.length;
+    $('admToday').textContent  = users.filter(u => u.createdAt === todayStr).length;
+    $('admGoogle').textContent = users.filter(u => u.provider  === 'google').length;
+    $('admEmail').textContent  = users.filter(u => u.provider  === 'email').length;
+
+    if (!users.length) {
+      $('admList').innerHTML = '<p style="color:var(--text3);font-size:.85rem;padding:10px 0">No users yet.</p>';
+      return;
+    }
+
+    $('admList').innerHTML = users.map(u => {
+      const name    = esc(u.displayName ?? u.email?.split('@')[0] ?? 'Unknown');
+      const handle  = u.username ? `@${esc(u.username)}` : '';
+      const email   = esc(u.email ?? '—');
+      const uid     = esc(u.uid ?? u.id ?? '—');
+      const joined  = esc(u.createdAt ?? '—');
+      const login   = esc(u.lastLogin ?? '—');
+      const prov    = u.provider === 'email' ? '📧 Email' : '🌐 Google';
+      const avatEl  = u.avatarBase64
+        ? `<img src="${u.avatarBase64}" alt="Avatar">`
+        : name[0].toUpperCase();
+      return `
+        <div class="user-row">
+          <div class="user-avt">${avatEl}</div>
+          <div class="user-info">
+            <div class="user-name">${name} ${handle ? `<span style="color:var(--text3);font-weight:400;font-size:.78rem">${handle}</span>` : ''}</div>
+            <div class="user-detail">📧 ${email}</div>
+            <div class="user-detail">🆔 ${uid}</div>
+            <div class="user-detail">🕐 Last login: ${login}</div>
+            <div class="user-detail">📅 Joined: ${joined}</div>
+            <span class="user-badge">${prov}</span>
+          </div>
+        </div>`;
+    }).join('');
+  } catch (e) {
+    $('admList').innerHTML = `<p style="color:var(--danger);font-size:.83rem">${esc(e.message)}</p>`;
+  }
+};
+
+/* ═══════════════════════════════════════════════════
+   MESSAGES / CHAT
+═══════════════════════════════════════════════════ */
+
+/** Toggle follow/unfollow a user */
+window.toggleFollow = async (targetUid, targetName) => {
+  UDATA.following   = UDATA.following ?? [];
+  const idx         = UDATA.following.indexOf(targetUid);
+  const isFollowing = idx === -1;
+
+  if (isFollowing) {
+    UDATA.following.push(targetUid);
+  } else {
+    UDATA.following.splice(idx, 1);
+    /* Remove row from following list immediately */
+    const row = $(`frow_${targetUid}`);
+    if (row) row.remove();
+  }
+
+  await saveUserData();
+
+  /* Update follow button in search results if visible */
+  const btn = $(`fBtn_${targetUid}`);
+  if (btn) {
+    btn.textContent        = isFollowing ? '✓ Following' : '+ Follow';
+    btn.style.background   = isFollowing ? 'var(--surface2)' : 'linear-gradient(135deg,#6E8B5E,#2D5A27)';
+    btn.style.color        = isFollowing ? 'var(--text2)'    : '#E8D9C5';
+    btn.style.borderColor  = isFollowing ? 'var(--border)'   : 'transparent';
+  }
+
+  /* Refresh counters and list */
+  if ($('pP').classList.contains('on')) renderFollowing();
+};
+
+/** Render following + followers lists in profile */
+async function renderFollowing() {
+  const container = $('followingList');
+  if (!container) return;
+
+  const following  = UDATA.following ?? [];
+  const followersC = $('followersCount');
+  const followingC = $('followingCount');
+  if (followingC) followingC.textContent = following.length;
+
+  /* Count followers: users who have current uid in their following array */
+  try {
+    const fSnap = await getDocs(query(
+      collection(db, 'users'),
+      where('following', 'array-contains', auth.currentUser.uid)
+    ));
+    if (followersC) followersC.textContent = fSnap.size;
+  } catch { if (followersC) followersC.textContent = '0'; }
+
+  if (!following.length) {
+    container.innerHTML = `
+      <p style="color:var(--text3);font-size:.84rem;padding:10px 0;text-align:center">
+        ${LANG === 'ar' ? 'لا تتابع أحداً بعد' : 'Not following anyone yet'}
+      </p>`;
+    return;
+  }
+
+  container.innerHTML = '<div class="loading"><div class="spin"></div></div>';
+  try {
+    const docs  = await Promise.all(
+      following.map(uid =>
+        getDoc(doc(db, 'users', uid)).then(s => s.exists() ? { id: s.id, ...s.data() } : null)
+      )
+    );
+    const users = docs.filter(Boolean);
+    if (!users.length) { container.innerHTML = ''; return; }
+
+    container.innerHTML = users.map(u => {
+      const name    = u.displayName ?? u.username ?? 'User';
+      const handle  = u.username ? `@${esc(u.username)}` : '';
+      const avatEl  = u.avatarBase64
+        ? `<img src="${u.avatarBase64}" alt="${esc(name)}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`
+        : esc(name[0]).toUpperCase();
+      const uid_safe = esc(u.id);
+      const un_safe  = esc(u.username ?? '');
+      const nm_safe  = esc(name);
+      return `
+        <div class="follow-row" id="frow_${uid_safe}">
+          <div class="follow-user" onclick="goToChat('${uid_safe}','${un_safe}','${nm_safe}')">
+            <div class="follow-avt">${avatEl}</div>
+            <div class="follow-info">
+              <div class="follow-name">${esc(name)}</div>
+              <div class="follow-handle">${handle}</div>
+            </div>
+          </div>
+          <div class="follow-actions">
+            <button class="follow-msg-btn" onclick="goToChat('${uid_safe}','${un_safe}','${nm_safe}')">
+              💬 ${LANG === 'ar' ? 'رسالة' : 'Message'}
+            </button>
+            <button class="follow-unf-btn" onclick="toggleFollow('${uid_safe}','${nm_safe}')">
+              ${LANG === 'ar' ? 'إلغاء' : 'Unfollow'}
+            </button>
+          </div>
+        </div>`;
+    }).join('');
+  } catch (e) {
+    container.innerHTML = `<p style="color:var(--danger);font-size:.83rem">${esc(e.message)}</p>`;
+  }
+}
+
+/** Switch between Following / Followers tabs */
+window.switchFollowTab = tab => {
+  const tF  = $('tabFollowing');
+  const tFr = $('tabFollowers');
+  if (tab === 'following') {
+    tF.style.color              = 'var(--accent)';
+    tF.style.borderBottomColor  = 'var(--accent)';
+    tF.style.fontWeight         = '700';
+    tFr.style.color             = 'var(--text2)';
+    tFr.style.borderBottomColor = 'transparent';
+    tFr.style.fontWeight        = '600';
+    renderFollowing();
+  } else {
+    tFr.style.color             = 'var(--accent)';
+    tFr.style.borderBottomColor = 'var(--accent)';
+    tFr.style.fontWeight        = '700';
+    tF.style.color              = 'var(--text2)';
+    tF.style.borderBottomColor  = 'transparent';
+    tF.style.fontWeight         = '600';
+    renderFollowers();
+  }
+};
+
+/** Render followers list (users who follow current user) */
+async function renderFollowers() {
+  const container = $('followingList');
+  if (!container) return;
+  container.innerHTML = '<div class="loading"><div class="spin"></div></div>';
+  try {
+    const uid  = auth.currentUser.uid;
+    const snap = await getDocs(query(
+      collection(db, 'users'),
+      where('following', 'array-contains', uid)
+    ));
+    if (snap.empty) {
+      container.innerHTML = `
+        <p style="color:var(--text3);font-size:.84rem;padding:12px 0;text-align:center">
+          ${LANG === 'ar' ? 'لا يوجد متابعون بعد' : 'No followers yet'}
+        </p>`;
+      return;
+    }
+    const myFollowing = UDATA.following ?? [];
+    container.innerHTML = snap.docs.map(d => {
+      const u       = { id: d.id, ...d.data() };
+      const name    = u.displayName ?? u.username ?? 'User';
+      const handle  = u.username ? `@${esc(u.username)}` : '';
+      const isF     = myFollowing.includes(u.id);
+      const avatEl  = u.avatarBase64
+        ? `<img src="${u.avatarBase64}" alt="${esc(name)}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`
+        : esc(name[0]).toUpperCase();
+      return `
+        <div class="follow-row">
+          <div class="follow-user" onclick="goToChat('${esc(u.id)}','${esc(u.username??'')}','${esc(name)}')">
+            <div class="follow-avt">${avatEl}</div>
+            <div class="follow-info">
+              <div class="follow-name">${esc(name)}</div>
+              <div class="follow-handle">${handle}</div>
+            </div>
+          </div>
+          <div class="follow-actions">
+            <button class="follow-msg-btn" onclick="goToChat('${esc(u.id)}','${esc(u.username??'')}','${esc(name)}')">
+              💬 ${LANG === 'ar' ? 'رسالة' : 'Message'}
+            </button>
+            <button onclick="toggleFollow('${esc(u.id)}','${esc(name)}')" id="fBtn_${esc(u.id)}"
+                    style="background:${isF ? 'var(--surface2)' : 'linear-gradient(135deg,#6E8B5E,#2D5A27)'};
+                           border:1px solid ${isF ? 'var(--border)' : 'transparent'};
+                           color:${isF ? 'var(--text2)' : '#E8D9C5'};
+                           border-radius:99px;padding:6px 12px;font-size:.75rem;
+                           font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap">
+              ${isF ? (LANG === 'ar' ? '✓ متابَع' : '✓ Following') : (LANG === 'ar' ? '+ تابع' : '+ Follow')}
+            </button>
+          </div>
+        </div>`;
+    }).join('');
+  } catch (e) {
+    container.innerHTML = `<p style="color:var(--danger);font-size:.83rem">${esc(e.message)}</p>`;
+  }
+}
+
+/** Scroll to following section */
+window.scrollToFollowing = () => {
+  const el = $('followingSection');
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
+/** Go to chat from profile — navigates to messages tab then opens chat */
+window.goToChat = async (uid, username, name) => {
+  // Fetch user avatar before opening chat
+  let avt = '', pUrl = '';
+  try {
+    const usnap = await getDoc(doc(db, 'users', uid));
+    if (usnap.exists()) {
+      const ud = usnap.data();
+      avt  = ud.avatarBase64 ?? '';
+      pUrl = ud.photoURL     ?? '';
+    }
+  } catch {}
+  showScreen('APP');
+  navTo('M');
+  await startChat(uid, username, name, avt, pUrl);
+};
+
+/** Deterministic chat ID from two user IDs */
+const getChatId = (uid1, uid2) => [uid1, uid2].sort().join('_');
+
+/** Load and subscribe to conversations list */
+async function loadChats() {
+  const cl  = $('chatList');
+  cl.innerHTML = '<div class="loading"><div class="spin"></div></div>';
+  const uid = auth.currentUser?.uid;
+  if (!uid) return;
+
+  try {
+    if (unsubChats) { unsubChats(); unsubChats = null; }
+    const q = query(
+      collection(db, 'chats'),
+      where('members', 'array-contains', uid),
+      orderBy('lastTime', 'desc'),
+      limit(50)
+    );
+    unsubChats = onSnapshot(q, async snap => {
+      if (snap.empty) {
+        cl.innerHTML = `<div style="text-align:center;color:var(--text3);font-size:.85rem;padding:30px;white-space:pre-line">${t('msgEmpty')}</div>`;
+        return;
+      }
+      const rows = await Promise.all(snap.docs.map(async d => {
+        const chat    = d.data();
+        const otherId = chat.members.find(m => m !== uid);
+        let name = otherId, username = '', avatEl = '';
+        try {
+          const usnap = await getDoc(doc(db, 'users', otherId));
+          if (usnap.exists()) {
+            const ud   = usnap.data();
+            name       = ud.displayName ?? ud.username ?? otherId;
+            username   = ud.username ?? '';
+            avatEl     = ud.avatarBase64
+              ? `<img src="${ud.avatarBase64}" alt="Avatar">`
+              : esc(name[0]).toUpperCase();
+          }
+        } catch { avatEl = '?'; }
+        const time = fmtTime(chat.lastTime);
+        return `
+          <div class="chat-row" onclick="openChat('${esc(d.id)}','${esc(name)}','${esc(username)}')">
+            <div class="chat-avt">${avatEl}</div>
+            <div class="chat-info">
+              <div class="chat-name">
+                ${esc(name)}
+                ${username ? `<span style="color:var(--text3);font-weight:400;font-size:.78rem"> @${esc(username)}</span>` : ''}
+              </div>
+              <div class="chat-last">${esc(chat.lastMsg ?? 'Start a conversation')}</div>
+            </div>
+            <div class="chat-time">${time}</div>
+          </div>`;
+      }));
+      cl.innerHTML = rows.join('');
+    });
+  } catch (e) {
+    cl.innerHTML = `<p style="color:var(--danger);font-size:.83rem;padding:16px">${esc(e.message)}</p>`;
+  }
+}
+
+window.filterChats = q => {
+  document.querySelectorAll('.chat-row').forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(q.toLowerCase()) ? 'flex' : 'none';
+  });
+};
+
+/** Open new chat modal */
+window.openNewChat = () => {
+  $('ncSearch').value = '';
+  $('ncResults').innerHTML = '';
+  openModal('NCM');
+};
+
+/** Search users by username prefix */
+window.searchUsers = async q => {
+  const res = $('ncResults');
+  const uq  = q.trim().replace(/^@/,'').toLowerCase();
+  if (!uq || uq.length < 2) { res.innerHTML = ''; return; }
+  res.innerHTML = '<div class="loading"><div class="spin"></div></div>';
+  try {
+    const snap = await getDocs(query(
+      collection(db, 'users'),
+      where('username', '>=', uq),
+      where('username', '<=', uq + '\uf8ff'),
+      limit(10)
+    ));
+    const uid      = auth.currentUser.uid;
+    const following = UDATA.following ?? [];
+    const users    = [];
+    snap.forEach(d => { if (d.id !== uid) users.push({ id: d.id, ...d.data() }); });
+    if (!users.length) {
+      res.innerHTML = '<p style="color:var(--text3);font-size:.84rem;padding:10px">No users found.</p>';
+      return;
+    }
+    res.innerHTML = users.map(u => {
+      const name      = u.displayName ?? u.username ?? 'User';
+      const isFollow  = following.includes(u.id);
+      const avatEl    = u.avatarBase64
+        ? `<img src="${u.avatarBase64}" alt="Avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`
+        : esc(name[0]).toUpperCase();
+      return `
+        <div class="user-result" style="justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer"
+               onclick="startChat('${esc(u.id)}','${esc(u.username??'')}','${esc(name)}')">
+            <div class="user-avt-sm">${avatEl}</div>
+            <div style="min-width:0">
+              <div class="user-rname">${esc(name)}</div>
+              <div class="user-rhandle">@${esc(u.username ?? '')}</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0;margin-left:8px">
+            <button onclick="toggleFollow('${esc(u.id)}','${esc(name)}')"
+                    style="background:${isFollow ? 'var(--surface2)' : 'linear-gradient(135deg,#6E8B5E,#2D5A27)'};
+                           border:1px solid ${isFollow ? 'var(--border)' : 'transparent'};
+                           color:${isFollow ? 'var(--text2)' : '#E8D9C5'};
+                           border-radius:99px;padding:5px 12px;font-size:.75rem;
+                           font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap"
+                    id="fBtn_${esc(u.id)}">
+              ${isFollow ? '✓ Following' : '+ Follow'}
+            </button>
+            <button onclick="startChat('${esc(u.id)}','${esc(u.username??'')}','${esc(name)}')"
+                    style="background:var(--surface2);border:1px solid var(--border);
+                           color:var(--text2);border-radius:99px;padding:5px 10px;
+                           font-size:.75rem;cursor:pointer;font-family:inherit">
+              💬
+            </button>
+          </div>
+        </div>`;
+    }).join('');
+  } catch (e) {
+    res.innerHTML = `<p style="color:var(--danger);font-size:.83rem;padding:10px">${esc(e.message)}</p>`;
+  }
+};
+
+/** Create chat doc if needed, then open chat */
+window.startChat = async (uid, username, name, avatarBase64 = '', photoURL = '') => {
+  closeModal('NCM');
+  if (!auth.currentUser) return;
+  const cid  = getChatId(auth.currentUser.uid, uid);
+  const ref  = doc(db, 'chats', cid);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) {
+    await setDoc(ref, {
+      members  : [auth.currentUser.uid, uid],
+      createdAt: new Date().toISOString(),
+      lastMsg  : '',
+      lastTime : new Date().toISOString(),
+    });
+  }
+  /* Fetch avatar if not provided */
+  let avt = avatarBase64, pUrl = photoURL;
+  if (!avt && !pUrl) {
+    try {
+      const usnap = await getDoc(doc(db, 'users', uid));
+      if (usnap.exists()) {
+        const ud = usnap.data();
+        avt  = ud.avatarBase64 ?? '';
+        pUrl = ud.photoURL     ?? '';
+      }
+    } catch {}
+  }
+  openChat(cid, name, username, avt, pUrl);
+};
+
+/** Open chat screen and subscribe to messages */
+window.openChat = (chatId, name, username, avatarBase64, photoURL) => {
+  /* ── Set header info ── */
+  $('chatWithName').textContent = name;
+  $('chatHeaderStatus').textContent = LANG === 'ar' ? 'متصل' : 'Online';
+
+  /* Header avatar */
+  const hAvt = $('chatHeaderAvt');
+  if (avatarBase64) {
+    hAvt.innerHTML = `<img src="${avatarBase64}" alt="${esc(name)}">`;
+  } else if (photoURL) {
+    hAvt.innerHTML = `<img src="${esc(photoURL)}" alt="${esc(name)}">`;
+  } else {
+    hAvt.textContent = name[0]?.toUpperCase() ?? '?';
+  }
+
+  /* Info panel */
+  $('chatInfoName').textContent   = name;
+  $('chatInfoHandle').textContent = username ? `@${username}` : '';
+  const iAvt = $('chatInfoAvt');
+  if (avatarBase64) {
+    iAvt.innerHTML = `<img src="${avatarBase64}" alt="${esc(name)}">`;
+  } else {
+    iAvt.textContent = name[0]?.toUpperCase() ?? '?';
+  }
+  $('chatInfoPanel').style.display = 'none';
+
+  /* Show screen */
+  showScreen('CS');
+  $('msgList').innerHTML = '<div class="loading"><div class="spin"></div></div>';
+
+  /* Subscribe to messages */
+  if (unsubMsgs) { unsubMsgs(); unsubMsgs = null; }
+  const q = query(
+    collection(db, 'chats', chatId, 'messages'),
+    orderBy('time', 'asc'),
+    limit(100)
+  );
+  unsubMsgs = onSnapshot(q, snap => {
+    const ml  = $('msgList');
+    const uid = auth.currentUser?.uid;
+
+    if (snap.empty) {
+      ml.innerHTML = `
+        <div class="chat-empty">
+          <div class="chat-empty-ico">👋</div>
+          <div class="chat-empty-txt">${LANG === 'ar' ? 'ابدأ المحادثة!' : 'Start the conversation!'}</div>
+        </div>`;
+      return;
+    }
+
+    /* Group messages by sender and date */
+    const msgs     = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    let   html     = '';
+    let   lastDate = '';
+    let   lastSender = '';
+    let   groupMsgs  = [];
+
+    const flushGroup = () => {
+      if (!groupMsgs.length) return;
+      const isMe     = groupMsgs[0].senderId === uid;
+      const cls      = isMe ? 'me' : 'them';
+      let   groupHtml = `<div class="msg-group ${cls}">`;
+
+      groupMsgs.forEach((m, i) => {
+        const time      = fmtTime(m.time);
+        const isLast    = i === groupMsgs.length - 1;
+        const showAvt   = !isMe && isLast;
+        const avtHtml   = !isMe
+          ? `<div class="msg-avt-sm${showAvt ? '' : ' hidden'}">${avatarBase64 ? `<img src="${avatarBase64}" alt="">` : esc(name[0]).toUpperCase()}</div>`
+          : '';
+
+        groupHtml += `
+          <div class="msg-row">
+            ${avtHtml}
+            <div>
+              <div class="msg-bubble">${esc(m.text)}</div>
+              ${isLast ? `<div class="msg-time">${time}${isMe ? ' <span class="msg-tick">✓✓</span>' : ''}</div>` : ''}
+            </div>
+          </div>`;
+      });
+
+      groupHtml += '</div>';
+      html += groupHtml;
+      groupMsgs = [];
+    };
+
+    msgs.forEach(m => {
+      /* Date separator */
+      const msgDate = m.time ? new Date(m.time).toLocaleDateString(
+        LANG === 'ar' ? 'ar-SA' : 'en-US',
+        { weekday:'long', month:'short', day:'numeric' }
+      ) : '';
+      if (msgDate && msgDate !== lastDate) {
+        flushGroup();
+        html += `
+          <div class="chat-date-sep">
+            <div class="chat-date-line"></div>
+            <div class="chat-date-txt">${esc(msgDate)}</div>
+            <div class="chat-date-line"></div>
+          </div>`;
+        lastDate = msgDate;
+        lastSender = '';
+      }
+
+      /* New group if sender changed */
+      if (m.senderId !== lastSender) {
+        flushGroup();
+        lastSender = m.senderId;
+      }
+
+      groupMsgs.push(m);
+    });
+
+    flushGroup(); /* Flush last group */
+    ml.innerHTML = html;
+    ml.scrollTop = ml.scrollHeight;
+  });
+
+  /* Store chatId */
+  $('msgInp').dataset.chatId = chatId;
+};
+
+/** Toggle info panel */
+window.toggleChatInfo = () => {
+  const panel = $('chatInfoPanel');
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+};
+
+/** Handle Enter key in textarea */
+window.handleMsgKey = e => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+};
+
+/** Auto-resize textarea */
+window.autoResizeTextarea = el => {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+};
+
+window.closeChat = () => {
+  if (unsubMsgs) { unsubMsgs(); unsubMsgs = null; }
+  showScreen('APP');
+  navTo('M');
+};
+
+window.sendMessage = async () => {
+  const inp    = $('msgInp');
+  const text   = inp.value.trim().slice(0, 1000); // enforce Firestore rule limit
+  const chatId = inp.dataset.chatId;
+  if (!text || !chatId) return;
+  inp.value = '';
+  const now  = new Date().toISOString();
+  const uid  = auth.currentUser.uid;
+  try {
+    await addDoc(collection(db, 'chats', chatId, 'messages'), {
+      text, senderId: uid, time: now,
+    });
+    await updateDoc(doc(db, 'chats', chatId), { lastMsg: text, lastTime: now });
+  } catch (e) { console.error('sendMessage:', e.message); }
+};
+
+/* ═══════════════════════════════════════════════════
+   BOOT
+═══════════════════════════════════════════════════ */
+applyTranslations();
+</script>
+</body>
+</html>
